@@ -29,6 +29,10 @@ dependencies {
     implementation("net.java.dev.jna:jna:4.5.0")
     // https://mvnrepository.com/artifact/net.java.dev.jna/jna-platform
     implementation("net.java.dev.jna:jna-platform:5.18.0")
+    // JNAerator for code generation (compileOnly since it's build-time only)
+    compileOnly("com.nativelibs4java:jnaerator:0.12")
+    // JNAerator as annotation processor (optional, for programmatic use)
+    annotationProcessor("com.nativelibs4java:jnaerator:0.12")
 }
 
 tasks.test {
