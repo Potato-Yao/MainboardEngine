@@ -2,7 +2,7 @@
 #define NATIVE_PLATFORM_H
 
 #include <string>
-#include "mainboard_engine.h"
+#include "include/mainboard_engine.h"
 
 namespace MainboardEngine {
     // platform independent
@@ -83,7 +83,9 @@ namespace MainboardEngine {
 
         bool ShouldClose() const override;
     };
-#elifdef __linux__
+#endif
+
+#ifdef __linux__
     class LinuxPlatform : public MEPlatform {
     public:
         bool Initialize() override;
@@ -94,7 +96,9 @@ namespace MainboardEngine {
 
         bool ProcessEvents() override;
     };
-#elifdef __APPLE__
+#endif
+
+#ifdef __APPLE__
     class ApplePlatform : public MEPlatform {
     public:
         bool Initialize() override;

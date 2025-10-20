@@ -1,5 +1,4 @@
-#include "platform.h"
-#include "../mainboard_engine.h"
+#include "../include/mainboard_engine.h"
 
 int main() {
     ME_Initialize();

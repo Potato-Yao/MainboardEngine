@@ -3,6 +3,7 @@
 #include <codecvt>
 #include <locale>
 
+extern "C" {
 namespace ME = MainboardEngine;
 
 static std::unique_ptr<ME::MEPlatform> g_platform;
@@ -42,6 +43,7 @@ ME_API ME_BOOL ME_RenderFrame(ME_HANDLE handle) {
 ME_API ME_BOOL ME_DestroyWindow(ME_HANDLE handle) {
     auto *windows = static_cast<ME::MEWindow *>(handle);
     delete windows; // MEWindow has developer defined deconstructor function
+    return ME_TRUE;
 }
 
 ME_API ME_HANDLE ME_GetMEWindowHandle(ME_HANDLE handle) {
@@ -144,31 +146,30 @@ namespace MainboardEngine {
 #define ME_WINDOWS_H_INCLUDED
 #endif
 
-    // to avoid naming conflict
-    // why doesn't windows.h give its function a prefix when using global namespace
-    // FU MICROSOFT!
-    static auto WinAPIShowWindow = ShowWindow;
-
     bool Win32Window::SetSize(int width, int height) {
+        return ME_TRUE;
     }
 
     bool Win32Window::SetPosition(int x, int y) {
+        return ME_TRUE;
     }
 
     bool Win32Window::SetTitle(const char *title) {
+        return ME_TRUE;
     }
 
     void *Win32Window::GetMEWindowHandle() {
+        return nullptr;
     }
 
     bool Win32Window::IsValid() const {
+        return ME_TRUE;
     }
 
     bool Win32Window::ShouldClose() const {
+        return ME_TRUE;
     }
 }
 
-#elifdef __linux__
-
-#elifdef __APPLE__
 #endif
+}

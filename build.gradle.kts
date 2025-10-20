@@ -25,16 +25,11 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.7.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    // https://mvnrepository.com/artifact/net.java.dev.jna/jna
-    implementation("net.java.dev.jna:jna:4.5.0")
-    // https://mvnrepository.com/artifact/net.java.dev.jna/jna-platform
-    implementation("net.java.dev.jna:jna-platform:5.18.0")
-    // JNAerator for code generation (compileOnly since it's build-time only)
-    compileOnly("com.nativelibs4java:jnaerator:0.12")
-    // JNAerator as annotation processor (optional, for programmatic use)
-    annotationProcessor("com.nativelibs4java:jnaerator:0.12")
+    implementation("net.java.dev.jna:jna:5.14.0")
+    implementation("net.java.dev.jna:jna-platform:5.14.0")
 }
 
 tasks.test {
     useJUnitPlatform()
 }
+
