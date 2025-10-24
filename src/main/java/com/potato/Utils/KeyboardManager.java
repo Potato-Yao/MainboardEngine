@@ -1,5 +1,7 @@
 package com.potato.Utils;
 
+import com.potato.Config;
+import com.potato.OSType;
 import com.sun.jna.platform.win32.User32;
 
 public class KeyboardManager {
@@ -18,8 +20,13 @@ public class KeyboardManager {
     }
 
     private boolean isKeyDownRaw(int keyCode) {
-        // 0x8000 is 1000000000000000 in binary, to isolate only the high-order bit
-        return (User32.INSTANCE.GetAsyncKeyState(keyCode) & 0x8000) != 0;
+        if (Config.os == OSType.Windows) {
+            // 0x8000 is 1000000000000000 in binary, to isolate only the high-order bit
+            return (User32.INSTANCE.GetAsyncKeyState(keyCode) & 0x8000) != 0;
+        } else {
+            // TODO implement for other OS
+            return false;
+        }
     }
 
     public static KeyboardManager getManager() {

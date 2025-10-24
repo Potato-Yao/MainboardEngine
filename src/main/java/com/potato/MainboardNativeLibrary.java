@@ -4,6 +4,7 @@ import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 
+// It should NEVER be called directly. Use `NativeCaller` instead.
 public interface MainboardNativeLibrary extends Library {
     MainboardNativeLibrary INSTANCE = Native.load("mainboard_native", MainboardNativeLibrary.class);
 

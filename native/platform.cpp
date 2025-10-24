@@ -1,4 +1,4 @@
-#include "platform.h"
+#include "include/platform.h"
 #include <memory>
 #include <codecvt>
 #include <locale>
@@ -31,7 +31,7 @@ ME_API ME_HANDLE ME_CreateWindow(
     return window;
 }
 
-ME_API ME_BOOL ME_ProcessEvents(ME_HANDLE handle) {
+ME_API ME_MESSAGE_TYPE ME_ProcessEvents(ME_HANDLE handle) {
     auto *window = static_cast<ME::MEWindow *>(handle);
     return g_platform->ProcessEvents(window);
 }
@@ -88,7 +88,7 @@ namespace MainboardEngine {
     void Win32Platform::Shutdown() {
     }
 
-    bool Win32Platform::ProcessEvents(ME_HANDLE handle) {
+    ME_MESSAGE_TYPE Win32Platform::ProcessEvents(ME_HANDLE handle) {
         MSG msg = {};
         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
             TranslateMessage(&msg);
@@ -155,7 +155,7 @@ namespace MainboardEngine {
     }
 
     bool Win32Window::SetTitle(const char *title) {
-        return ME_TRUE;
+        return SetWindowText(this->m_hwnd, title) != 0;
     }
 
     void *Win32Window::GetMEWindowHandle() {

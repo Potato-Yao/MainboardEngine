@@ -23,6 +23,8 @@ extern "C" {
 #define ME_TRUE 1
 #define ME_FALSE 0
 
+#define ME_MESSAGE_TYPE int
+
 typedef void *ME_HANDLE;
 
 ME_API ME_BOOL ME_Initialize();

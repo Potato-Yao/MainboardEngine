@@ -2,12 +2,18 @@ package com.potato;
 
 import com.sun.jna.Pointer;
 import org.junit.jupiter.api.Test;
+
+import java.io.File;
+
 import static com.potato.MainboardNativeLibrary.*;
 
 class NativeLibraryTest {
     @Test
     void WindowCrateTest() {
-        NativeLoader.load();
+        File projectRoot = new File(System.getProperty("user.dir"));
+        File nativeDir = new File(projectRoot, "native/MEbuild");
+
+        System.setProperty("jna.library.path", nativeDir.getAbsolutePath());
         MainboardNativeLibrary library = INSTANCE;
 
         library.ME_Initialize();

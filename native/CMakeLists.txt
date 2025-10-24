@@ -4,10 +4,25 @@ project(mainboard_engine)
 set(CMAKE_CXX_STANDARD 17)
 
 # Put all MEbuild outputs into the `MEbuild` folder at project root
-set(OUTPUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/MEbuild")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${OUTPUT_DIR})   # .lib (import or static)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${OUTPUT_DIR})   # .dll (on Windows)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})   # executables (like tests)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIR}")
+
+# For DLLs (.dll)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIR}")
+
+# For import/static libs (.lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIR}")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIR}")
+
+# BUILD the library on windows(using developer powershell prompt 2022):
+# get into build folder
+# cmake .. -G "Visual Studio 17 2022"
+# cmake --build . --config Release
+# the dll and .lib will be in MEbuild/Release folder
 
 add_library(mainboard_native SHARED
         platform.cpp

@@ -2,7 +2,8 @@
 #define NATIVE_PLATFORM_H
 
 #include <string>
-#include "include/mainboard_engine.h"
+#include "mainboard_engine.h"
+#include "event_message_type.h"
 
 namespace MainboardEngine {
     // platform independent
@@ -17,7 +18,7 @@ namespace MainboardEngine {
         virtual class MEWindow *CreateWindow(
             int is_full_screen, int x, int y, int width, int height, const char *title) = 0;
 
-        virtual bool ProcessEvents(ME_HANDLE handle) = 0;
+        virtual ME_MESSAGE_TYPE ProcessEvents(ME_HANDLE handle) = 0;
 
         const std::string className = "MainboardEngineBasedWindow";
     };
@@ -54,13 +55,15 @@ namespace MainboardEngine {
 
     class Win32Platform : public MEPlatform {
     public:
+        Win32Platform() = default;
+
         bool Initialize() override;
 
         void Shutdown() override;
 
         MEWindow *CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title) override;
 
-        bool ProcessEvents(ME_HANDLE handle) override;
+        ME_MESSAGE_TYPE ProcessEvents(ME_HANDLE handle) override;
     };
 
     class Win32Window : public MEWindow {
