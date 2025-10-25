@@ -19,7 +19,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIR}")
 
 # BUILD the library on windows(using developer powershell prompt 2022):
-# get into build folder
+# get into build folder, which is cd build
 # cmake .. -G "Visual Studio 17 2022"
 # cmake --build . --config Release
 # the dll and .lib will be in MEbuild/Release folder

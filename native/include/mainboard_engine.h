@@ -31,7 +31,7 @@ ME_API ME_BOOL ME_Initialize();
 
 ME_API ME_HANDLE ME_CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title);
 
-ME_API ME_BOOL ME_ProcessEvents(ME_HANDLE handle);
+ME_API ME_MESSAGE_TYPE ME_ProcessEvents(ME_HANDLE handle);
 
 ME_API ME_BOOL ME_RenderFrame(ME_HANDLE handle);
 

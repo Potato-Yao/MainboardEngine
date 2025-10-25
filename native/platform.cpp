@@ -82,7 +82,7 @@ namespace MainboardEngine {
     }
 
     bool Win32Platform::Initialize() {
-        return 1;
+        return true;
     }
 
     void Win32Platform::Shutdown() {
@@ -90,11 +90,22 @@ namespace MainboardEngine {
 
     ME_MESSAGE_TYPE Win32Platform::ProcessEvents(ME_HANDLE handle) {
         MSG msg = {};
-        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+        ME_MESSAGE_TYPE mes;
+        if (!PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+            return ME_CANNOT_GET_EVENT_MESSAGE;
         }
-        return true;
+        switch (msg.message) {
+            case WM_QUIT:
+                mes = ME_QUIT_MESSAGE;
+                break;
+            default:
+                mes = ME_NO_EVENT_MESSAGE;
+        }
+
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+
+        return mes;
     }
 
 

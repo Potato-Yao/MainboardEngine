@@ -1,5 +1,6 @@
 #include "../include/mainboard_engine.h"
 #include "../include/platform.h"
+#include "../include/event_message_type.h"
 
 int main() {
     ME_Initialize();
@@ -9,7 +10,7 @@ int main() {
     // window->SetTitle("Title set");
 
     while (true) {
-        if (!ME_ProcessEvents(window)) {
+        if (ME_ProcessEvents(window) == ME_QUIT_MESSAGE) {
             break;
         }
         ME_RenderFrame(window);

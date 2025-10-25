@@ -2,12 +2,13 @@ package com.potato.Utils;
 
 import com.potato.Config;
 import com.potato.MainboardNativeLibrary;
+import com.potato.Utils.EventMessage;
 import com.sun.jna.Pointer;
 
 import java.io.File;
 import java.util.ArrayList;
 
-// only cope stuff with native library
+// packing native function calls
 public class NativeCaller {
     private boolean isLoaded = false;
     private MainboardNativeLibrary library;
@@ -53,9 +54,11 @@ public class NativeCaller {
             }
 
             // event process of native side
-            if (library.ME_ProcessEvents(windowHandle) == 0) {
+            int meg = library.ME_ProcessEvents(windowHandle);
+            if (meg == EventMessage.QUIT.getCode()) {
                 break;
             }
+
             if (library.ME_RenderFrame(windowHandle) == 0) {
                 throw new RuntimeException("Failed to render frame.");
             }
