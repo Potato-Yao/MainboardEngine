@@ -44,6 +44,7 @@ public enum KeyCode {
     MOUSE_LEFT(0x01), MOUSE_RIGHT(0x02), MOUSE_MIDDLE(0x04);
 
     private final int virtualKeyCode;
+    private static KeyCode[] keyCodes = KeyCode.values();
 
     KeyCode(int virtualKeyCode) {
         this.virtualKeyCode = virtualKeyCode;
@@ -51,5 +52,14 @@ public enum KeyCode {
 
     public int getVirtualKeyCode() {
         return virtualKeyCode;
+    }
+
+    public static KeyCode getKeyCodeByVirtualKeyCode(int virtualKeyCode) {
+        for (KeyCode keyCode : keyCodes) {
+            if (keyCode.getVirtualKeyCode() == virtualKeyCode) {
+                return keyCode;
+            }
+        }
+        return null;
     }
 }

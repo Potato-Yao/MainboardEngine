@@ -37,6 +37,7 @@ public class CursorManager {
             User32.INSTANCE.GetCursorPos(winPoint);
             point = CursorPoint.fromWinPoint(winPoint);
         }
+        // TODO implement for other OS
         return point;
     }
 }

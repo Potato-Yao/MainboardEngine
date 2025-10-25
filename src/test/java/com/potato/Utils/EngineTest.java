@@ -12,20 +12,9 @@ class EngineTest {
         engine.registerEventProcessor((context, caller) -> {
             if (context.getCurrentContext() == GameContext.CommonContext.ENGINE_START.name()) {
                 engine.keyboardManager.poll();
-                if (engine.keyboardManager.isKeyPressed(KeyCode.A)) {
+                if (engine.engineHelper.hasKeyDown()) {
                     Instant start = Instant.now();
-                    caller.setTitle("A pressed");
-                    Instant end = Instant.now();
-                    System.out.println("Time taken: " + Duration.between(start, end).toNanos() + " ns");
-                }
-            }
-        });
-        engine.registerEventProcessor((context, caller) -> {
-            if (context.getCurrentContext() == GameContext.CommonContext.ENGINE_START.name()) {
-                engine.keyboardManager.poll();
-                if (engine.keyboardManager.isKeyPressed(KeyCode.B)) {
-                    Instant start = Instant.now();
-                    caller.setTitle("B pressed");
+                    caller.setTitle(engine.engineHelper.getCurrPressedKeys().get(0).name());
                     Instant end = Instant.now();
                     System.out.println("Time taken: " + Duration.between(start, end).toNanos() + " ns");
                 }

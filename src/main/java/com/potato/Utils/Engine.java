@@ -8,8 +8,9 @@ public class Engine {
     private NativeCaller caller;
     private ArrayList eventProcessers = new ArrayList<EventProcesser>();
     private boolean hasStarted = false;
-    public KeyboardManager keyboardManager = KeyboardManager.getManager();
-    public CursorManager cursorManager = CursorManager.getManager();
+    public final EngineHelper engineHelper = new EngineHelper(this);
+    public final KeyboardManager keyboardManager = KeyboardManager.getManager();
+    public final CursorManager cursorManager = CursorManager.getManager();
 
     public Engine() {
         this.caller = new NativeCaller();
