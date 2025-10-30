@@ -45,3 +45,4 @@ bin/
 
 /gradle/wrapper
 /native/MEbuild/Release
+/native/third_party/bgfx.cmake

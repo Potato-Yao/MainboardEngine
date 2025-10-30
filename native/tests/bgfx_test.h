@@ -4,6 +4,8 @@
 
 int execute() {
     bgfx::Init init;
+
+    return 0;
 }
 
 #endif
