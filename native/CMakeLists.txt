@@ -3,6 +3,8 @@ project(mainboard_engine)
 
 set(CMAKE_CXX_STANDARD 17)
 
+add_subdirectory(third_party/bgfx.cmake)
+
 # Put all MEbuild outputs into the `MEbuild` folder at project root
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${OUTPUT_DIR}")
@@ -37,6 +39,15 @@ target_include_directories(mainboard_native PUBLIC
         $<INSTALL_INTERFACE:include>
 )
 
-add_executable(test_native tests/Win32WindowTest.cpp)
+target_link_libraries(mainboard_native
+        bgfx
+        bimg
+        bx
+)
+
+add_executable(test_native tests/test.cpp
+        tests/win32_window_test.h
+        tests/bgfx_test.h)
+target_include_directories(test_native PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 target_link_libraries(test_native mainboard_native)
 target_include_directories(test_native PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

@@ -1,8 +1,9 @@
+#ifdef me_win32_window_test
 #include "../include/mainboard_engine.h"
 #include "../include/platform.h"
 #include "../include/event_message_type.h"
 
-int main() {
+int execute() {
     ME_Initialize();
     ME_HANDLE window = ME_CreateWindow(0, 0, 0, 800, 600, "Hi");
     // auto platform = MainboardEngine::Win32Platform();
@@ -19,3 +20,5 @@ int main() {
 
     return 0;
 }
+
+#endif
