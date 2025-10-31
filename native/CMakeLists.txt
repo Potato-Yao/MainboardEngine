@@ -49,5 +49,10 @@ add_executable(test_native tests/test.cpp
      tests/win32_window_test.h
      tests/bgfx_test.h)
 target_include_directories(test_native PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-target_link_libraries(test_native mainboard_native)
+target_link_libraries(test_native
+    mainboard_native
+    bgfx
+    bimg
+    bx
+)
 target_include_directories(test_native PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)

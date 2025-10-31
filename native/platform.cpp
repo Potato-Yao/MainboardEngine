@@ -90,10 +90,11 @@ namespace MainboardEngine {
 
     ME_MESSAGE_TYPE Win32Platform::ProcessEvents(ME_HANDLE handle) {
         MSG msg = {};
-        ME_MESSAGE_TYPE mes;
         if (!PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-            return ME_CANNOT_GET_EVENT_MESSAGE;
+            return ME_NO_EVENT_MESSAGE;  // No messages is normal, not an error
         }
+
+        ME_MESSAGE_TYPE mes;
         switch (msg.message) {
             case WM_QUIT:
                 mes = ME_QUIT_MESSAGE;
@@ -116,21 +117,21 @@ namespace MainboardEngine {
             has_registered = true;
             WNDCLASSEX wc = {0};
             wc.cbSize = sizeof(wc);
-            wc.style = CS_OWNDC;
+            wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;  // Add redraw styles for rendering
             wc.lpfnWndProc = WindowProc;
             wc.cbClsExtra = 0;
             wc.cbWndExtra = 0;
             wc.hInstance = GetModuleHandle(nullptr);
             wc.hIcon = nullptr;
-            wc.hCursor = nullptr;
-            wc.hbrBackground = nullptr;
+            wc.hCursor = LoadCursor(nullptr, IDC_ARROW);  // Set default cursor
+            wc.hbrBackground = nullptr;  // No background brush for rendering
             wc.lpszMenuName = nullptr;
             wc.lpszClassName = this->className.c_str();
             wc.hIconSm = nullptr;
             RegisterClassEx(&wc);
         }
 
-        auto style = WS_OVERLAPPEDWINDOW;
+        auto style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;  // Add WS_VISIBLE
         RECT wr = {0, 0, width, height};
         AdjustWindowRect(&wr, style, FALSE);
 
@@ -170,7 +171,7 @@ namespace MainboardEngine {
     }
 
     void *Win32Window::GetMEWindowHandle() {
-        return nullptr;
+        return this->m_hwnd;
     }
 
     bool Win32Window::IsValid() const {
