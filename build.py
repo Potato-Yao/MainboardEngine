@@ -36,10 +36,53 @@ class BuildConfig:
         return f"BuildConfig(OS={self.os_name}, BuildType={self.build_type})"
 
 
-class BGFXDownloader:
-    """Handles downloading and setting up bgfx.cmake dependency."""
+class Dependency:
+    """Represents a single dependency to download."""
 
-    BGFX_CMAKE_REPO = "https://github.com/bkaradzic/bgfx.cmake.git"
+    def __init__(self, name: str, dep_type: str, url: str, target_dir: str,
+                 verify_paths: list = None, has_submodules: bool = False):
+        """
+        Initialize a dependency.
+
+        Args:
+            name: Human-readable name of the dependency
+            dep_type: Type of dependency ('git' or 'file')
+            url: URL to download from
+            target_dir: Target directory relative to third_party (for git) or filename (for file)
+            verify_paths: List of paths to verify installation (relative to target_dir for git, or just the filename for file)
+            has_submodules: Whether the git repository has submodules (only for git type)
+        """
+        self.name = name
+        self.dep_type = dep_type
+        self.url = url
+        self.target_dir = target_dir
+        self.verify_paths = verify_paths or []
+        self.has_submodules = has_submodules
+
+
+# Define all dependencies here
+DEPENDENCIES = [
+    Dependency(
+        name="bgfx.cmake",
+        dep_type="git",
+        url="https://github.com/bkaradzic/bgfx.cmake.git",
+        target_dir="bgfx.cmake",
+        verify_paths=["CMakeLists.txt", "bgfx"],
+        has_submodules=True
+    ),
+    # Add more dependencies here as needed:
+    Dependency(
+        name="stb_image",
+        dep_type="file",
+        url="https://raw.githubusercontent.com/nothings/stb/master/stb_image.h",
+        target_dir="stb_image.h",
+        verify_paths=["stb_image.h"]
+    ),
+]
+
+
+class DependencyManager:
+    """Handles downloading and managing all project dependencies."""
 
     def __init__(self, config: BuildConfig):
         self.config = config
@@ -54,61 +97,116 @@ class BGFXDownloader:
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
 
-    def is_bgfx_installed(self) -> bool:
-        """Check if bgfx.cmake is already downloaded."""
-        cmake_file = self.config.bgfx_cmake_dir / "CMakeLists.txt"
-        bgfx_dir = self.config.bgfx_cmake_dir / "bgfx"
-        return cmake_file.exists() and bgfx_dir.exists()
+    def check_curl_available(self) -> bool:
+        """Check if curl is available in the system."""
+        try:
+            subprocess.run(["curl", "--version"],
+                         capture_output=True,
+                         check=True)
+            return True
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            return False
 
-    def download_bgfx(self):
-        """Download bgfx.cmake repository with submodules."""
-        print("=" * 60)
-        print("Downloading bgfx.cmake...")
-        print("=" * 60)
+    def is_dependency_installed(self, dep: Dependency) -> bool:
+        """Check if a dependency is already downloaded and valid."""
+        if dep.dep_type == "git":
+            target_path = self.config.third_party_dir / dep.target_dir
+            for verify_path in dep.verify_paths:
+                check_path = target_path / verify_path
+                if not check_path.exists():
+                    return False
+            return True
+        elif dep.dep_type == "file":
+            file_path = self.config.third_party_dir / dep.target_dir
+            return file_path.exists()
+        return False
+
+    def download_git_repo(self, dep: Dependency):
+        """Download a git repository."""
+        print(f"Cloning {dep.name} from {dep.url}...")
 
         if not self.check_git_available():
             print("ERROR: Git is not available in the system.")
             print("Please install Git and try again.")
             sys.exit(1)
 
+        target_path = self.config.third_party_dir / dep.target_dir
+
+        # Remove existing directory if it exists but is incomplete
+        if target_path.exists() and not self.is_dependency_installed(dep):
+            print(f"Removing incomplete {dep.name} directory...")
+            shutil.rmtree(target_path)
+
+        # Clone the repository
+        if not target_path.exists():
+            subprocess.run([
+                "git", "clone",
+                dep.url,
+                str(target_path)
+            ], check=True)
+
+        # Handle submodules if needed
+        if dep.has_submodules:
+            print(f"Initializing submodules for {dep.name}...")
+            subprocess.run([
+                "git", "submodule", "init"
+            ], cwd=target_path, check=True)
+
+            print(f"Updating submodules (this may take a while)...")
+            subprocess.run([
+                "git", "submodule", "update"
+            ], cwd=target_path, check=True)
+
+        print(f"✓ {dep.name} downloaded successfully!")
+
+    def download_file(self, dep: Dependency):
+        """Download a file using curl."""
+        print(f"Downloading {dep.name} from {dep.url}...")
+
+        if not self.check_curl_available():
+            print("ERROR: curl is not available in the system.")
+            print("Please install curl and try again.")
+            sys.exit(1)
+
+        target_path = self.config.third_party_dir / dep.target_dir
+
+        # Download the file
+        subprocess.run([
+            "curl",
+            "-L",  # Follow redirects
+            "-o", str(target_path),
+            dep.url
+        ], check=True)
+
+        print(f"✓ {dep.name} downloaded successfully!")
+
+    def download_dependency(self, dep: Dependency):
+        """Download a single dependency based on its type."""
+        print("=" * 60)
+        print(f"Downloading {dep.name}...")
+        print("=" * 60)
+
         # Create third_party directory if it doesn't exist
         self.config.third_party_dir.mkdir(parents=True, exist_ok=True)
 
-        # Remove existing directory if it exists but is incomplete
-        if self.config.bgfx_cmake_dir.exists() and not self.is_bgfx_installed():
-            print(f"Removing incomplete bgfx.cmake directory...")
-            shutil.rmtree(self.config.bgfx_cmake_dir)
+        if dep.dep_type == "git":
+            self.download_git_repo(dep)
+        elif dep.dep_type == "file":
+            self.download_file(dep)
+        else:
+            print(f"ERROR: Unknown dependency type '{dep.dep_type}' for {dep.name}")
+            sys.exit(1)
 
-        # Clone the repository
-        if not self.config.bgfx_cmake_dir.exists():
-            print(f"Cloning {self.BGFX_CMAKE_REPO}...")
-            subprocess.run([
-                "git", "clone",
-                self.BGFX_CMAKE_REPO,
-                str(self.config.bgfx_cmake_dir)
-            ], check=True)
-
-        # Initialize and update submodules
-        print("Initializing submodules...")
-        subprocess.run([
-            "git", "submodule", "init"
-        ], cwd=self.config.bgfx_cmake_dir, check=True)
-
-        print("Updating submodules (this may take a while)...")
-        subprocess.run([
-            "git", "submodule", "update"
-        ], cwd=self.config.bgfx_cmake_dir, check=True)
-
-        print("✓ bgfx.cmake downloaded successfully!")
         print()
 
-    def ensure_bgfx(self):
-        """Ensure bgfx.cmake is available, download if needed."""
-        if self.is_bgfx_installed():
-            print("✓ bgfx.cmake is already installed")
-            print()
-        else:
-            self.download_bgfx()
+    def ensure_all_dependencies(self):
+        """Ensure all dependencies are available, download if needed."""
+        for dep in DEPENDENCIES:
+            if self.is_dependency_installed(dep):
+                print(f"✓ {dep.name} is already installed")
+            else:
+                self.download_dependency(dep)
+        print()
 
 
 class NativeBuilder:
@@ -350,8 +448,8 @@ def main():
         clean_build_directory(config)
 
     # Step 1: Download dependencies
-    downloader = BGFXDownloader(config)
-    downloader.ensure_bgfx()
+    dep_manager = DependencyManager(config)
+    dep_manager.ensure_all_dependencies()
 
     # Step 2: Build native library (unless download-only)
     if not options['download_only']:

@@ -28,6 +28,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${OUTPUT_DIR}")
 
 add_library(mainboard_native SHARED
         platform.cpp
+        engine.cpp
 )
 
 if (WIN32)
@@ -37,6 +38,7 @@ endif ()
 target_include_directories(mainboard_native PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
 
 target_link_libraries(mainboard_native
@@ -55,4 +57,7 @@ target_link_libraries(test_native
     bimg
     bx
 )
-target_include_directories(test_native PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(test_native PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+)
