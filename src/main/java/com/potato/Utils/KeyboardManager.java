@@ -58,7 +58,10 @@ public class KeyboardManager {
         ArrayList pressedKeys = new ArrayList<KeyCode>();
         for (int i = 0; i < STATE_ARRAY_LENGTH; ++i) {
             if (currState[i]) {
-                pressedKeys.add(KeyCode.getKeyCodeByVirtualKeyCode(i));
+                KeyCode keyCode = KeyCode.getKeyCodeByVirtualKeyCode(i);
+                if (keyCode != null) {
+                    pressedKeys.add(keyCode);
+                }
             }
         }
 
