@@ -10,7 +10,7 @@ static std::unique_ptr<ME::MEPlatform> g_platform;
 
 ME_API ME_BOOL ME_Initialize() {
     if (g_platform) {
-        return 1;
+        return ME_TRUE;
     }
 
 #if defined(_WIN32)
@@ -37,7 +37,7 @@ ME_API ME_MESSAGE_TYPE ME_ProcessEvents(ME_HANDLE handle) {
 }
 
 ME_API ME_BOOL ME_RenderFrame(ME_HANDLE handle) {
-    return 1;
+    return ME_TRUE;
 }
 
 ME_API ME_BOOL ME_DestroyWindow(ME_HANDLE handle) {
@@ -91,7 +91,7 @@ namespace MainboardEngine {
     ME_MESSAGE_TYPE Win32Platform::ProcessEvents(ME_HANDLE handle) {
         MSG msg = {};
         if (!PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-            return ME_NO_EVENT_MESSAGE;  // No messages are normal, not an error
+            return ME_NO_EVENT_MESSAGE; // 0 means no message
         }
 
         ME_MESSAGE_TYPE mes;
@@ -115,7 +115,7 @@ namespace MainboardEngine {
         static bool has_registered = false;
         if (!has_registered) {
             has_registered = true;
-            WNDCLASSEX wc = {0};
+            WNDCLASSEX wc = {};
             wc.cbSize = sizeof(wc);
             wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
             wc.lpfnWndProc = WindowProc;
@@ -159,11 +159,18 @@ namespace MainboardEngine {
 #endif
 
     bool Win32Window::SetSize(int width, int height) {
-        return ME_TRUE;
+        RECT rect = {};
+        GetWindowRect(m_hwnd, &rect);
+        SetWindowPos(m_hwnd, nullptr, rect.left, rect.top, width, height, SWP_NOZORDER | SWP_NOACTIVATE);
+        return true;
     }
 
     bool Win32Window::SetPosition(int x, int y) {
-        return ME_TRUE;
+        RECT rect = {};
+        GetWindowRect(m_hwnd, &rect);
+        SetWindowPos(m_hwnd, nullptr, x, y, rect.right - rect.left, rect.top - rect.bottom,
+                     SWP_NOZORDER | SWP_NOACTIVATE);
+        return true;
     }
 
     bool Win32Window::SetTitle(const char *title) {
@@ -172,14 +179,6 @@ namespace MainboardEngine {
 
     void *Win32Window::GetMEWindowHandle() {
         return this->m_hwnd;
-    }
-
-    bool Win32Window::IsValid() const {
-        return ME_TRUE;
-    }
-
-    bool Win32Window::ShouldClose() const {
-        return ME_TRUE;
     }
 }
 

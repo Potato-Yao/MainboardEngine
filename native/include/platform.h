@@ -35,10 +35,6 @@ namespace MainboardEngine {
         virtual bool SetTitle(const char *title) = 0;
 
         virtual void *GetMEWindowHandle() = 0;
-
-        virtual bool IsValid() const = 0;
-
-        virtual bool ShouldClose() const = 0;
     };
 }
 
@@ -81,10 +77,6 @@ namespace MainboardEngine {
         bool SetTitle(const char *title) override;
 
         void *GetMEWindowHandle() override;
-
-        bool IsValid() const override;
-
-        bool ShouldClose() const override;
     };
 #endif
 
