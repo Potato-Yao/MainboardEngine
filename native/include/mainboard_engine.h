@@ -27,6 +27,13 @@ extern "C" {
 
 typedef void *ME_HANDLE;
 
+typedef struct ME_Rect {
+    int top;
+    int bottom;
+    int left;
+    int right;
+} ME_Rect;
+
 ME_API ME_BOOL ME_Initialize();
 
 ME_API ME_HANDLE ME_CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title);
@@ -40,6 +47,8 @@ ME_API ME_BOOL ME_DestroyWindow(ME_HANDLE handle);
 ME_API ME_HANDLE ME_GetMEWindowHandle(ME_HANDLE handle);
 
 ME_API ME_BOOL ME_SetWindowSize(ME_HANDLE handle, int width, int height);
+
+ME_API int ME_GetWindowSize(ME_HANDLE handle, ME_Rect *rect);
 
 ME_API ME_BOOL ME_SetWindowTitle(ME_HANDLE handle, const char *title);
 

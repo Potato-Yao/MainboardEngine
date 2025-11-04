@@ -2,7 +2,7 @@ package com.potato.Utils;
 
 import com.potato.Config;
 import com.potato.MainboardNativeLibrary;
-import com.potato.Utils.EventMessage;
+import com.potato.WindowRect;
 import com.sun.jna.Pointer;
 
 import java.io.File;
@@ -73,5 +73,15 @@ public class NativeCaller {
 
     public void setTitle(String title) {
         library.ME_SetWindowTitle(windowHandle, title);
+    }
+
+    public void setWindowSize(int width, int height) {
+        library.ME_SetWindowSize(windowHandle, width, height);
+    }
+
+    public WindowRect getWindowSize() {
+        WindowRect.ByReference rect = new WindowRect.ByReference();
+        library.ME_GetWindowSize(windowHandle, rect);
+        return rect;
     }
 }

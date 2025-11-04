@@ -40,11 +40,25 @@ public enum KeyCode {
     NUMPAD_ADD(0x6B), NUMPAD_SUBTRACT(0x6D), NUMPAD_MULTIPLY(0x6A),
     NUMPAD_DIVIDE(0x6F), NUMPAD_DECIMAL(0x6E), NUMPAD_ENTER(0x0D),
 
-    // Mouse
-    MOUSE_LEFT(0x01), MOUSE_RIGHT(0x02), MOUSE_MIDDLE(0x04);
+    // Punctuation and Symbol keys
+    SEMICOLON(0xBA),        // ; :
+    EQUALS(0xBB),           // = +
+    COMMA(0xBC),            // , <
+    MINUS(0xBD),            // - _
+    PERIOD(0xBE),           // . >
+    SLASH(0xBF),            // / ?
+    BACKTICK(0xC0),         // ` ~
+    LEFT_BRACKET(0xDB),     // [ {
+    BACKSLASH(0xDC),        // \ |
+    RIGHT_BRACKET(0xDD),    // ] }
+    QUOTE(0xDE),            // ' "
+
+    // Mouse buttons
+    MOUSE_LEFT(0x01), MOUSE_RIGHT(0x02), MOUSE_MIDDLE(0x04),
+    MOUSE_XBUTTON1(0x05), MOUSE_XBUTTON2(0x06);
 
     private final int virtualKeyCode;
-    private static KeyCode[] keyCodes = KeyCode.values();
+    private static final KeyCode[] keyCodes = KeyCode.values();
 
     KeyCode(int virtualKeyCode) {
         this.virtualKeyCode = virtualKeyCode;

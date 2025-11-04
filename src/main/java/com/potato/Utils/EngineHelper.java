@@ -16,4 +16,12 @@ public class EngineHelper {
     public ArrayList<KeyCode> getCurrPressedKeys() {
         return engine.keyboardManager.getCurrentPressedKeys();
     }
+
+    public KeyCode getFirstPressedKey() {
+        ArrayList<KeyCode> pressedKeys = engine.keyboardManager.getCurrentPressedKeys();
+        if (!pressedKeys.isEmpty()) {
+            return pressedKeys.get(0);
+        }
+        return null;
+    }
 }

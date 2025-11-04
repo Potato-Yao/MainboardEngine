@@ -1,5 +1,6 @@
 package com.potato.Utils;
 
+import com.potato.WindowRect;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -15,6 +16,13 @@ class EngineTest {
                 if (engine.engineHelper.hasKeyDown()) {
                     Instant start = Instant.now();
                     caller.setTitle(engine.engineHelper.getCurrPressedKeys().get(0).name());
+                    if (engine.engineHelper.getFirstPressedKey() == KeyCode.MINUS) {
+                        WindowRect rect = caller.getWindowSize();
+                        caller.setWindowSize(rect.getWidth() - 10, rect.getHeight() - 10);
+                    } else if (engine.engineHelper.getFirstPressedKey() == KeyCode.EQUALS) {
+                        WindowRect rect = caller.getWindowSize();
+                        caller.setWindowSize(rect.getWidth() + 10, rect.getHeight() + 10);
+                    }
                     Instant end = Instant.now();
                     System.out.println("Time taken: " + Duration.between(start, end).toNanos() + " ns");
                 }

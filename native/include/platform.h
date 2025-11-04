@@ -30,6 +30,8 @@ namespace MainboardEngine {
 
         virtual bool SetSize(int width, int height) = 0;
 
+        virtual ME_Rect GetSize() = 0;
+
         virtual bool SetPosition(int x, int y) = 0;
 
         virtual bool SetTitle(const char *title) = 0;
@@ -75,6 +77,8 @@ namespace MainboardEngine {
         bool SetPosition(int x, int y) override;
 
         bool SetTitle(const char *title) override;
+
+        ME_Rect GetSize() override;
 
         void *GetMEWindowHandle() override;
     };

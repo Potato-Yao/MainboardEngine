@@ -57,6 +57,13 @@ ME_API ME_BOOL ME_SetWindowSize(ME_HANDLE handle, int width, int height) {
     return window->SetSize(width, height);
 }
 
+ME_API int ME_GetWindowSize(ME_HANDLE handle, ME_Rect *rect) {
+    auto *window = static_cast<ME::MEWindow *>(handle);
+    *rect = window->GetSize();
+
+    return ME_TRUE;
+}
+
 ME_API ME_BOOL ME_SetWindowTitle(ME_HANDLE handle, const char *title) {
     auto *window = static_cast<ME::MEWindow *>(handle);
     return window->SetTitle(title);
@@ -163,6 +170,17 @@ namespace MainboardEngine {
         GetWindowRect(m_hwnd, &rect);
         SetWindowPos(m_hwnd, nullptr, rect.left, rect.top, width, height, SWP_NOZORDER | SWP_NOACTIVATE);
         return true;
+    }
+
+    ME_Rect Win32Window::GetSize() {
+        RECT rect = {};
+        GetWindowRect(m_hwnd, &rect);
+        ME_Rect me_rect = {};
+        me_rect.left = rect.left;
+        me_rect.right = rect.right;
+        me_rect.top = rect.top;
+        me_rect.bottom = rect.bottom;
+        return me_rect;
     }
 
     bool Win32Window::SetPosition(int x, int y) {

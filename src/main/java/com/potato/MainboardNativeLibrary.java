@@ -22,5 +22,7 @@ public interface MainboardNativeLibrary extends Library {
 
     int ME_SetWindowSize(Pointer handle, int width, int height);
 
+    int ME_GetWindowSize(Pointer handle, WindowRect.ByReference rect);
+
     int ME_SetWindowTitle(Pointer handle, String title);
 }
