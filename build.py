@@ -157,7 +157,7 @@ class DependencyManager:
                 "git", "submodule", "update"
             ], cwd=target_path, check=True)
 
-        print(f"✓ {dep.name} downloaded successfully!")
+        print(f"[OK] {dep.name} downloaded successfully!")
 
     def download_file(self, dep: Dependency):
         """Download a file using curl."""
@@ -178,7 +178,7 @@ class DependencyManager:
             dep.url
         ], check=True)
 
-        print(f"✓ {dep.name} downloaded successfully!")
+        print(f"[OK] {dep.name} downloaded successfully!")
 
     def download_dependency(self, dep: Dependency):
         """Download a single dependency based on its type."""
@@ -203,7 +203,7 @@ class DependencyManager:
         """Ensure all dependencies are available, download if needed."""
         for dep in DEPENDENCIES:
             if self.is_dependency_installed(dep):
-                print(f"✓ {dep.name} is already installed")
+                print(f"[OK] {dep.name} is already installed")
             else:
                 self.download_dependency(dep)
         print()
@@ -223,7 +223,7 @@ class NativeBuilder:
                                   check=True,
                                   text=True)
             version_line = result.stdout.split('\n')[0]
-            print(f"✓ {version_line}")
+            print(f"[OK] {version_line}")
             return True
         except (subprocess.CalledProcessError, FileNotFoundError):
             return False
@@ -284,7 +284,7 @@ class NativeBuilder:
             sys.exit(1)
 
         print()
-        print("✓ CMake configuration successful!")
+        print("[OK] CMake configuration successful!")
         print()
 
     def build_native(self):
@@ -325,7 +325,7 @@ class NativeBuilder:
             sys.exit(1)
 
         print()
-        print("✓ Build successful!")
+        print("[OK] Build successful!")
         print()
 
     def verify_output(self):
@@ -345,10 +345,10 @@ class NativeBuilder:
             file_path = self.config.output_dir / file_name
             if file_path.exists():
                 found_files.append(file_name)
-                print(f"  ✓ {file_name}")
+                print(f"  [OK] {file_name}")
 
         if not found_files:
-            print("  ⚠ Warning: Expected output files not found in MEbuild directory")
+            print("  [WARNING] Expected output files not found in MEbuild directory")
             print(f"  Looking for: {', '.join(expected_files)}")
             print(f"  Directory contents:")
             if self.config.output_dir.exists():
@@ -376,6 +376,7 @@ def print_usage():
     print("  --release        Build in Release mode")
     print("  --clean          Clean build directory before building")
     print("  --download-only  Only download dependencies, don't build")
+    print("  --vsdev          Setup Visual Studio Developer environment before building")
     print("  --help           Show this help message")
     print()
 
@@ -386,6 +387,7 @@ def parse_arguments():
     options = {
         'build_type': 'Release',
         'clean': False,
+        'vsdev': False,
         'download_only': False,
         'help': False
     }
@@ -399,6 +401,8 @@ def parse_arguments():
             options['clean'] = True
         elif arg == '--download-only':
             options['download_only'] = True
+        elif arg == '--vsdev':
+            options['vsdev'] = True
         elif arg == '--help' or arg == '-h':
             options['help'] = True
         else:
@@ -407,6 +411,62 @@ def parse_arguments():
             sys.exit(1)
 
     return options
+
+
+def setup_vsdev_environment():
+    """Setup Visual Studio Developer Command Prompt environment."""
+    print("=" * 60)
+    print("Setting up Visual Studio Developer environment...")
+    print("=" * 60)
+
+    vsdev_bat = r"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat"
+
+    if not os.path.exists(vsdev_bat):
+        print(f"ERROR: Visual Studio Developer Command file not found at:")
+        print(f"  {vsdev_bat}")
+        print("Please make sure Visual Studio 2022 Community is installed.")
+        sys.exit(1)
+
+    # Create a batch script that runs VsDevCmd and then outputs the environment variables
+    temp_bat = Path("temp_vsdev_setup.bat")
+    temp_env = Path("temp_vsdev_env.txt")
+
+    try:
+        # Write a batch script that sets up VS environment and outputs all env vars
+        with open(temp_bat, "w") as f:
+            f.write(f'@echo off\n')
+            f.write(f'call "{vsdev_bat}" -arch=x64\n')
+            f.write(f'set > "{temp_env.absolute()}"\n')
+
+        # Run the batch script
+        result = subprocess.run([str(temp_bat)], shell=True, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            print("ERROR: Failed to setup Visual Studio Developer environment")
+            print(result.stderr)
+            sys.exit(1)
+
+        # Read the environment variables and set them in current process
+        if temp_env.exists():
+            with open(temp_env, "r", encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    line = line.strip()
+                    if "=" in line:
+                        key, value = line.split("=", 1)
+                        os.environ[key] = value
+
+            print("[OK] Visual Studio Developer environment configured")
+            print()
+        else:
+            print("ERROR: Failed to capture environment variables")
+            sys.exit(1)
+
+    finally:
+        # Clean up temporary files
+        if temp_bat.exists():
+            temp_bat.unlink()
+        if temp_env.exists():
+            temp_env.unlink()
 
 
 def clean_build_directory(config: BuildConfig):
@@ -418,7 +478,7 @@ def clean_build_directory(config: BuildConfig):
     if config.build_dir.exists():
         print(f"Removing {config.build_dir}...")
         shutil.rmtree(config.build_dir)
-        print("✓ Build directory cleaned!")
+        print("[OK] Build directory cleaned!")
     else:
         print("Build directory doesn't exist, nothing to clean.")
 
@@ -446,6 +506,10 @@ def main():
     # Clean if requested
     if options['clean']:
         clean_build_directory(config)
+
+    # Setup Visual Studio Developer environment if requested
+    if options['vsdev'] and config.is_windows:
+        setup_vsdev_environment()
 
     # Step 1: Download dependencies
     dep_manager = DependencyManager(config)
