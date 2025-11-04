@@ -1,11 +1,12 @@
 package com.potato;
 
+import com.potato.NativeUtils.MainboardNativeLibrary;
 import com.sun.jna.Pointer;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static com.potato.MainboardNativeLibrary.*;
+import static com.potato.NativeUtils.MainboardNativeLibrary.*;
 
 class NativeLibraryTest {
     @Test

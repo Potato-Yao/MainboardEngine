@@ -1,7 +1,8 @@
 package com.potato.Utils;
 
 import com.potato.Config;
-import com.potato.OSType;
+import com.potato.NativeUtils.CursorPoint;
+import com.potato.Variable.OSType;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 

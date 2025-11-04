@@ -1,5 +1,6 @@
 package com.potato.Utils;
 
+import com.potato.Variable.KeyCode;
 import org.junit.jupiter.api.Test;
 
 class KeyboardManagerTest {

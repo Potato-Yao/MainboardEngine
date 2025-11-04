@@ -1,7 +1,8 @@
 package com.potato.Utils;
 
 import com.potato.Config;
-import com.potato.OSType;
+import com.potato.Variable.KeyCode;
+import com.potato.Variable.OSType;
 import com.sun.jna.platform.win32.User32;
 
 import java.util.ArrayList;

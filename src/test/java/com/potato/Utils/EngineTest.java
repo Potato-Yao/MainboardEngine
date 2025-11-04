@@ -1,6 +1,7 @@
 package com.potato.Utils;
 
-import com.potato.WindowRect;
+import com.potato.Variable.KeyCode;
+import com.potato.NativeUtils.WindowRect;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;

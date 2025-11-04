@@ -1,6 +1,8 @@
 package com.potato;
 
 import com.potato.Utils.GameContext;
+import com.potato.Variable.EngineType;
+import com.potato.Variable.OSType;
 
 public class Config {
     public static EngineType engineType = null;
