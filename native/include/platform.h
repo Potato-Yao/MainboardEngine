@@ -1,12 +1,14 @@
 #ifndef NATIVE_PLATFORM_H
 #define NATIVE_PLATFORM_H
 
+#include <memory>
 #include <string>
 #include "mainboard_engine.h"
 #include "event_message_type.h"
+#include "platform.h"
+#include "platform.h"
 
 namespace MainboardEngine {
-    // platform independent
     class MEPlatform {
     public:
         virtual ~MEPlatform() = default;
@@ -23,7 +25,6 @@ namespace MainboardEngine {
         const std::string className = "MainboardEngineBasedWindow";
     };
 
-    // platform dependent
     class MEWindow {
     public:
         virtual ~MEWindow() = default;
@@ -86,27 +87,70 @@ namespace MainboardEngine {
 
 #ifdef __linux__
     class LinuxPlatform : public MEPlatform {
+        std::unique_ptr<LinuxPlatform> m_platform;
+
     public:
+        ~LinuxPlatform() override;
+
         bool Initialize() override;
 
         void Shutdown() override;
 
-        IWindow *CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title) override;
+        MEWindow *CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title) override;
 
-        bool ProcessEvents() override;
+        int ProcessEvents(ME_HANDLE handle) override;
     };
+
+    class LinuxWindow : public MEWindow {
+        std::unique_ptr<LinuxWindow> m_window;
+
+    public:
+        ~LinuxWindow() override;
+
+        bool SetSize(int width, int height) override;
+
+        ME_Rect GetSize() override;
+
+        bool SetPosition(int x, int y) override;
+
+        bool SetTitle(const char *title) override;
+
+        void *GetMEWindowHandle() override;
+    };
+
+#ifdef __ME_USE_WAYLAND__
+    class WaylandPlatform : public LinuxPlatform {
+    public:
+        ~WaylandPlatform() override;
+
+        bool Initialize() override;
+
+        void Shutdown() override;
+
+        MEWindow *CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title) override;
+
+        int ProcessEvents(ME_HANDLE handle) override;
+    };
+
+    class WaylandWindow : public MEWindow {
+    public:
+        bool SetSize(int width, int height) override;
+
+        ME_Rect GetSize() override;
+
+        bool SetPosition(int x, int y) override;
+
+        bool SetTitle(const char *title) override;
+
+        void *GetMEWindowHandle() override;
+    };
+#endif
+
 #endif
 
 #ifdef __APPLE__
     class ApplePlatform : public MEPlatform {
     public:
-        bool Initialize() override;
-
-        void Shutdown() override;
-
-        IWindow *CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title) override;
-
-        bool ProcessEvents() override;
     };
 #endif
 }
