@@ -214,7 +214,7 @@ namespace MainboardEngine {
         if (m_platform) {
             return true;
         }
-#ifdef ME_USE_WAYLAND
+#ifdef __ME_USE_WAYLAND__
         m_platform = std::make_unique<WaylandPlatform>();
 #endif
         if (!m_platform) {
@@ -260,15 +260,93 @@ namespace MainboardEngine {
 
 #ifdef __ME_USE_WAYLAND__
 
-#ifndef ME_WAYLAND_H_INCLUDED
+extern "C" {
 #include <wayland-client.h>
-#define ME_WAYLAND_H_INCLUDED
-#endif
+#include "xdg-shell-client-protocol.h"
+}
+
+#include <cstring>
 
 namespace MainboardEngine {
+    void WaylandPlatform::registry_global_handler(void *data, void *registry_ptr, uint32_t name,
+                                                  const char *interface, uint32_t version) {
+        WaylandPlatform *platform = static_cast<WaylandPlatform *>(data);
+        if (!platform) return;
+
+        wl_registry *registry = static_cast<wl_registry *>(registry_ptr);
+
+        if (strcmp(interface, wl_compositor_interface.name) == 0) {
+            platform->compositor = wl_registry_bind(registry, name, &wl_compositor_interface, 4);
+        } else if (strcmp(interface, wl_shm_interface.name) == 0) {
+            platform->shm = wl_registry_bind(registry, name, &wl_shm_interface, 1);
+        } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
+            platform->xdg_wm_base = wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
+        }
+    }
+
+    void WaylandPlatform::registry_global_remove_handler(void *data, void *registry_ptr, uint32_t name) {
+    }
+
     bool WaylandPlatform::Initialize() {
+        display = wl_display_connect(nullptr);
+        if (!display) {
+            return false;
+        }
+
+        wl_registry *registry = wl_display_get_registry(static_cast<wl_display *>(display));
+
+        static const wl_registry_listener registry_listener = {
+            .global = reinterpret_cast<void (*)(void *, wl_registry *, uint32_t, const char *, uint32_t)>(registry_global_handler),
+            .global_remove = reinterpret_cast<void (*)(void *, wl_registry *, uint32_t)>(registry_global_remove_handler)
+        };
+
+        wl_registry_add_listener(registry, &registry_listener, this);
+        wl_display_roundtrip(static_cast<wl_display *>(display));
+
+        if (!compositor || !shm || !xdg_wm_base) {
+            return false;
+        }
+
+        return true;
+    }
+
+    void WaylandPlatform::Shutdown() {
+    }
+
+    MEWindow *WaylandPlatform::CreateWindow(int is_full_screen, int x, int y, int width, int height,
+                                            const char *title) {
+        return nullptr;
+    }
+
+    int WaylandPlatform::ProcessEvents(ME_HANDLE handle) {
+        return ME_NO_EVENT_MESSAGE;
+    }
+
+    WaylandPlatform::~WaylandPlatform() = default;
+}
+
+namespace MainboardEngine {
+    bool WaylandWindow::SetSize(int width, int height) {
+        return false;  // TODO: implement
+    }
+
+    ME_Rect WaylandWindow::GetSize() {
+        return {};  // TODO: implement
+    }
+
+    bool WaylandWindow::SetPosition(int x, int y) {
+        return false;  // TODO: implement
+    }
+
+    void *WaylandWindow::GetMEWindowHandle() {
+        return nullptr;  // TODO: implement
+    }
+
+    bool WaylandWindow::SetTitle(const char *title) {
+        return false;  // TODO: implement
     }
 }
+
 #endif
 
 #endif

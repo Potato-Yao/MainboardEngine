@@ -1,6 +1,7 @@
 #ifndef NATIVE_PLATFORM_H
 #define NATIVE_PLATFORM_H
 
+#include <cstdint>
 #include <memory>
 #include <string>
 #include "mainboard_engine.h"
@@ -90,7 +91,7 @@ namespace MainboardEngine {
         std::unique_ptr<LinuxPlatform> m_platform;
 
     public:
-        ~LinuxPlatform() override;
+        ~LinuxPlatform() override = default;
 
         bool Initialize() override;
 
@@ -105,7 +106,7 @@ namespace MainboardEngine {
         std::unique_ptr<LinuxWindow> m_window;
 
     public:
-        ~LinuxWindow() override;
+        ~LinuxWindow() override = default;
 
         bool SetSize(int width, int height) override;
 
@@ -120,7 +121,18 @@ namespace MainboardEngine {
 
 #ifdef __ME_USE_WAYLAND__
     class WaylandPlatform : public LinuxPlatform {
+        void *display;
+        void *compositor;
+        void *shm;
+        void *xdg_wm_base;
+
+        static void registry_global_handler(void *data, void *registry, uint32_t name, const char *interface,
+                                            uint32_t version);
+
+        static void registry_global_remove_handler(void *data, void *registry, uint32_t name);
+
     public:
+        WaylandPlatform() : display(nullptr), compositor(nullptr), shm(nullptr), xdg_wm_base(nullptr) {}
         ~WaylandPlatform() override;
 
         bool Initialize() override;
