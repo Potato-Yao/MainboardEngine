@@ -2,10 +2,13 @@
 #include <codecvt>
 #include <locale>
 
+#include  "include/event_message_type.h"
+
 extern "C" {
 namespace ME = MainboardEngine;
 
 static std::unique_ptr<ME::MEPlatform> g_platform;
+static std::unique_ptr<ME::MEEngine> g_engine;
 
 ME_API ME_BOOL ME_Initialize() {
     if (g_platform) {
@@ -25,7 +28,11 @@ ME_API ME_BOOL ME_Initialize() {
 
 ME_API ME_HANDLE ME_CreateWindow(
     int is_full_screen, int x, int y, int width, int height, const char *title) {
-    ME::MEWindow *window = g_platform->CreateWindow(is_full_screen, x, y, width, height, title);
+    ME::MEWindow *window = nullptr;
+    bool state = g_platform->CreateWindow(is_full_screen, x, y, width, height, title, window);
+    if (!state) {
+        return nullptr;
+    }
 
     return window;
 }
@@ -33,6 +40,10 @@ ME_API ME_HANDLE ME_CreateWindow(
 ME_API ME_MESSAGE_TYPE ME_ProcessEvents(ME_HANDLE handle) {
     auto *window = static_cast<ME::MEWindow *>(handle);
     return g_platform->ProcessEvents(window);
+}
+
+ME_API ME_BOOL ME_RenderBlock(int block_id, int x, int y) {
+    return g_engine->RenderBlock(block_id, x, y);
 }
 
 ME_API ME_BOOL ME_RenderFrame(ME_HANDLE handle) {
@@ -49,7 +60,6 @@ ME_API ME_HANDLE ME_GetMEWindowHandle(ME_HANDLE handle) {
     auto *window = static_cast<ME::MEWindow *>(handle);
     return window->GetMEWindowHandle();
 }
-
 
 ME_API ME_BOOL ME_SetWindowSize(ME_HANDLE handle, int width, int height) {
     auto *window = static_cast<ME::MEWindow *>(handle);
@@ -68,10 +78,113 @@ ME_API ME_BOOL ME_SetWindowTitle(ME_HANDLE handle, const char *title) {
     return window->SetTitle(title);
 }
 
+ME_API ME_BOOL ME_LoadBlock(int id, const char *path) {
+    return MainboardEngine::MEEngine::RegistryBlock(id, path);
+}
+
+namespace MainboardEngine {
+    static int GetRectWidth(ME_Rect *rect) {
+        return rect->right - rect->left;
+    }
+
+    static int GetRectHeight(ME_Rect *rect) {
+        return rect->bottom - rect->top;
+    }
+}
+
+namespace MainboardEngine {
+    bool MEEngine::Start(MEWindow *window) {
+        using namespace bgfx;
+
+        auto temp_engine = new MEEngine();
+        temp_engine->m_window = window;
+
+        for (int i = 0; i < BLOCK_ARRAY_SIZE; ++i) {
+            temp_engine->m_blocks[i] = std::nullopt;
+        }
+
+        ME_Rect window_rect = temp_engine->m_window->GetSize();
+        Init init;
+        init.type = RendererType::Count;
+        init.resolution.width = GetRectWidth(&window_rect);
+        init.resolution.height = GetRectHeight(&window_rect);
+        init.resolution.reset = BGFX_RESET_VSYNC;
+        PlatformData platformData;
+        platformData.nwh = temp_engine->m_window->GetMEWindowHandle();
+        init.platformData = platformData;
+
+        auto stat = bgfx::init(init);
+        if (!stat) {
+            return false;
+        }
+
+        g_engine = std::unique_ptr<MEEngine>(temp_engine);
+
+        return true;
+    }
+
+
+    bool MEEngine::RegistryBlock(int id, std::string path) {
+        if (g_engine->m_blocks[id] != std::nullopt) {
+            return false;
+        }
+
+        Block block = {};
+
+        auto data = stbi_load(path.c_str(), &block.width, &block.height, &block.channels, 4);
+        if (!data) {
+            return false;
+        }
+        auto texture = bgfx::createTexture2D(block.width, block.height, false, 1, bgfx::TextureFormat::RGBA8,
+                                             BGFX_TEXTURE_NONE | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT,
+                                             bgfx::copy(data, block.width * block.height * 4));
+        // TODO how the hell can i know if the texture is created successfully
+        block.texture = texture;
+        stbi_image_free(data);
+
+        g_engine->m_blocks[id] = block;
+
+        return true;
+    }
+
+    // bool MEEngine::RegistryRenderBlock(std::string block_name, int x, int y) {
+    //     RenderBlockCommand command = {};
+    //     command.block_name = block_name;
+    //     command.x = x;
+    //     command.y = y;
+    //     m_commands.push_back(command);
+    //
+    //     return true;
+    // }
+    //
+    bool MEEngine::RenderBlock(int id, int x, int y) {
+        if (m_blocks[id] == std::nullopt) {
+            return false;
+        }
+
+
+
+        return true;
+    }
+
+    //
+    // bool MEEngine::Render() {
+    //     for (Command &command : m_commands) {
+    //         try {
+    //             auto render_block_command = dynamic_cast<RenderBlockCommand &>(command);
+    //
+    //         } catch (std::bad_cast cast) {
+    //         }
+    //     }
+    //     m_commands.clear();
+    //
+    //     return true;
+    // }
+}
+
+
 #ifdef _WIN32
 namespace MainboardEngine {
-
-
 
 #ifndef ME_WINDOWS_H_INCLUDED
 #include <windows.h>
@@ -119,8 +232,8 @@ ME_MESSAGE_TYPE Win32Platform::ProcessEvents(ME_HANDLE handle) {
 }
 
 
-MEWindow *Win32Platform::CreateWindow(
-    int is_full_screen, int x, int y, int width, int height, const char *title) {
+bool Win32Platform::CreateWindow(
+    int is_full_screen, int x, int y, int width, int height, const char *title, MEWindow *&window) {
     static bool has_registered = false;
     if (!has_registered) {
         has_registered = true;
@@ -149,7 +262,7 @@ MEWindow *Win32Platform::CreateWindow(
                               style, x, y, wr.right - wr.left, wr.bottom - wr.top, nullptr, nullptr,
                               GetModuleHandle(nullptr), nullptr);
     if (!hwnd) {
-        return nullptr;
+        return false;
     }
 
     ShowWindow(hwnd, SW_SHOW);
@@ -157,7 +270,13 @@ MEWindow *Win32Platform::CreateWindow(
 
     SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(new Win32Window(hwnd)));
 
-    return reinterpret_cast<Win32Window *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+    auto temp_window = reinterpret_cast<Win32Window *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
+    bool state = MEEngine::Start(temp_window);
+
+    window = temp_window;
+
+    return state;
 }
 }
 

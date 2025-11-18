@@ -1,13 +1,44 @@
 #ifndef NATIVE_PLATFORM_H
 #define NATIVE_PLATFORM_H
 
-#include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
+#include <optional>
 #include "mainboard_engine.h"
-#include "event_message_type.h"
+
+#include <bgfx/bgfx.h>
+
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 #include "platform.h"
-#include "platform.h"
+
+// TODO using factory method, make it determined by java side
+constexpr int BLOCK_ARRAY_SIZE = 1024;
+
+namespace MainboardEngine {
+    class MEWindow;
+
+    struct Block {
+        int id;
+        std::optional<std::string> type;
+        std::optional<bgfx::TextureHandle> texture;
+        int width;
+        int height;
+        int channels;
+    };
+
+//     struct Command {
+//         virtual ~Command() = default;
+//     };
+//
+//     struct RenderBlockCommand : Command {
+//         int x;
+//         int y;
+//         std::string block_name;
+//     };
+}
 
 namespace MainboardEngine {
     class MEPlatform {
@@ -18,8 +49,8 @@ namespace MainboardEngine {
 
         virtual void Shutdown() = 0;
 
-        virtual class MEWindow *CreateWindow(
-            int is_full_screen, int x, int y, int width, int height, const char *title) = 0;
+        virtual bool CreateWindow(
+            int is_full_screen, int x, int y, int width, int height, const char *title, MEWindow *&window) = 0;
 
         virtual ME_MESSAGE_TYPE ProcessEvents(ME_HANDLE handle) = 0;
 
@@ -39,6 +70,29 @@ namespace MainboardEngine {
         virtual bool SetTitle(const char *title) = 0;
 
         virtual void *GetMEWindowHandle() = 0;
+    };
+
+    class MEEngine {
+        MEWindow *m_window;
+        std::optional<Block> m_blocks[BLOCK_ARRAY_SIZE];
+        bgfx::VertexBufferHandle m_vbh;
+        bgfx::IndexBufferHandle m_ibh;
+
+    public:
+        virtual ~MEEngine() = default;
+
+        static bool Start(MEWindow *window);
+
+        void Shutdown();
+
+        static bool RegistryBlock(int id, std::string path);
+
+        bool RenderBlock(int id, int x, int y);
+
+        // bool RegistryRenderBlock(std::string block_name, int x, int y);
+
+        // bool Render();
+
     };
 }
 
@@ -61,13 +115,12 @@ namespace MainboardEngine {
 
         void Shutdown() override;
 
-        MEWindow *CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title) override;
+        bool CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title, MEWindow *&window) override;
 
         ME_MESSAGE_TYPE ProcessEvents(ME_HANDLE handle) override;
     };
 
     class Win32Window : public MEWindow {
-    private:
         HWND m_hwnd;
 
     public:

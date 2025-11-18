@@ -1,7 +1,7 @@
-// #define me_win32_window_test
-// #define me_bgfx_test
+#define me_win32_window_test
+ // #define me_bgfx_test
 // #define me_wayland_window_test
-#define me_window_test
+// #define me_window_test
 #include <win32_window_test.h>
 #include <bgfx_test.h>
 

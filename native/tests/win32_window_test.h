@@ -1,4 +1,6 @@
 #ifdef me_win32_window_test
+#include <iostream>
+
 #include "../include/mainboard_engine.h"
 #include "../include/platform.h"
 #include "../include/event_message_type.h"
@@ -8,6 +10,9 @@
 int execute() {
     ME_Initialize();
     ME_HANDLE window = ME_CreateWindow(0, 0, 0, 800, 600, "Hi");
+    if (!window) {
+        std::cout << "Failed to create window." << std::endl;
+    }
     // auto platform = MainboardEngine::Win32Platform();
     // MainboardEngine::MEWindow *window = platform.CreateWindow(0, 0, 0, 800, 600, "Hi");
     // window->SetTitle("Title set");

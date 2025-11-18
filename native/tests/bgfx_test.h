@@ -1,14 +1,25 @@
+// #define me_bgfx_test
 #ifdef me_bgfx_test
 
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <vector>
 #include <bgfx/bgfx.h>
 #include <mainboard_engine.h>
 #include <event_message_type.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+
+// Structure to hold image and texture data
+struct ImageData {
+    std::string path;
+    bgfx::TextureHandle texture;
+    float width;
+    float height;
+    unsigned char* data;
+};
 
 // Helper function to load shader
 static bgfx::ShaderHandle loadShader(const char* filename) {
@@ -23,11 +34,56 @@ static bgfx::ShaderHandle loadShader(const char* filename) {
     file.seekg(0, std::ios::beg);
 
     const bgfx::Memory* mem = bgfx::alloc(uint32_t(size + 1));
-    file.read((char*)mem->data, size);
+    file.read(reinterpret_cast<char *>(mem->data), size);
     mem->data[size] = '\0';
     file.close();
 
     return bgfx::createShader(mem);
+}
+
+// Helper function to load a single image
+static ImageData loadImage(const std::string& path) {
+    ImageData img;
+    img.path = path;
+    img.data = nullptr;
+
+    int imgWidth, imgHeight, imgChannels;
+    img.data = stbi_load(path.c_str(), &imgWidth, &imgHeight, &imgChannels, 4);
+
+    if (!img.data) {
+        std::cout << "ERROR: Failed to load image from " << path << std::endl;
+        img.texture = BGFX_INVALID_HANDLE;
+        img.width = 0;
+        img.height = 0;
+        return img;
+    }
+
+    std::cout << "Image loaded: " << path << " - " << imgWidth << "x" << imgHeight << std::endl;
+
+    img.width = float(imgWidth);
+    img.height = float(imgHeight);
+
+    // Create texture with point filtering for sharp pixel art
+    img.texture = bgfx::createTexture2D(imgWidth, imgHeight, false, 1, bgfx::TextureFormat::RGBA8,
+                                        BGFX_TEXTURE_NONE | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT,
+                                        bgfx::copy(img.data, imgWidth * imgHeight * 4));
+
+    if (!bgfx::isValid(img.texture)) {
+        std::cout << "ERROR: Failed to create texture for " << path << std::endl;
+        stbi_image_free(img.data);
+        img.data = nullptr;
+    }
+
+    return img;
+}
+
+// Helper function to load multiple images
+static std::vector<ImageData> loadImages(const std::vector<std::string>& paths) {
+    std::vector<ImageData> images;
+    for (const auto& path : paths) {
+        images.push_back(loadImage(path));
+    }
+    return images;
 }
 
 int execute() {
@@ -36,10 +92,10 @@ int execute() {
 
     ME_Initialize();
 
-    uint32_t windowWidth = 800;
-    uint32_t windowHeight = 600;
+    uint32_t windowWidth = 1200;
+    uint32_t windowHeight = 800;
 
-    auto window = ME_CreateWindow(0, 100, 100, windowWidth, windowHeight, "BGFX Tileset Renderer - Resize to see tiles adjust!");
+    auto window = ME_CreateWindow(0, 100, 100, windowWidth, windowHeight, "BGFX Multi-Image Renderer");
     Init bgfx_init;
     bgfx_init.type = RendererType::Count;
     bgfx_init.resolution.width = windowWidth;
@@ -58,40 +114,23 @@ int execute() {
         return -1;
     }
 
-    // Load the PNG image using stb_image
-    int imgWidth, imgHeight, imgChannels;
-    unsigned char *imageData = nullptr;
+    // Load multiple images
+    vector<string> imagePaths = {
+        "../tests/Ice_Block_(placed).png",
+        "../tests/Cobalt_Brick_(placed).png",
+        // "../tests/third_image.png",
+    };
 
-    auto path = "../tests/Ice_Block_(placed).png";
-    imageData = stbi_load(path, &imgWidth, &imgHeight, &imgChannels, 4);
+    vector<ImageData> images = loadImages(imagePaths);
 
-    if (!imageData) {
-        cout << "ERROR: Failed to load image!" << endl;
+    if (images.empty() || !isValid(images[0].texture)) {
+        cout << "ERROR: No valid images loaded!" << endl;
         shutdown();
         ME_DestroyWindow(window);
         return -1;
     }
 
-    cout << "Image loaded: " << imgWidth << "x" << imgHeight << " channels: " << imgChannels << endl;
-
-    // Create texture with point filtering for sharp pixel art
-    // Default wrapping mode is REPEAT (texture will tile automatically)
-    TextureHandle texture = createTexture2D(imgWidth, imgHeight, false, 1, TextureFormat::RGBA8,
-                                            BGFX_TEXTURE_NONE | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT,
-                                            copy(imageData, imgWidth * imgHeight * 4));
-
-    // Store texture dimensions for shader
-    float textureWidth = float(imgWidth);
-    float textureHeight = float(imgHeight);
-
-    stbi_image_free(imageData);
-
-    if (!isValid(texture)) {
-        cout << "ERROR: Failed to create texture!" << endl;
-        shutdown();
-        ME_DestroyWindow(window);
-        return -1;
-    }
+    cout << "Loaded " << images.size() << " images successfully!" << endl;
 
     // Create vertex buffer for a fullscreen quad
     struct PosTexCoord {
@@ -171,6 +210,10 @@ int execute() {
     uint32_t lastWidth = windowWidth;
     uint32_t lastHeight = windowHeight;
     bool needsResize = false;
+    uint32_t currentImageIndex = 0;
+
+    cout << "Rendering " << images.size() << " images in grid layout" << endl;
+    cout << "Press number keys to switch between images (if multiple are loaded)" << endl;
 
     while (true) {
         if (ME_ProcessEvents(window) == ME_QUIT_MESSAGE) {
@@ -199,18 +242,64 @@ int execute() {
         // Always set view rect to ensure proper rendering
         setViewRect(0, 0, 0, uint16_t(lastWidth), uint16_t(lastHeight));
 
-        // If we have a valid program, render with shaders
+        // Render all images in a grid layout
         if (isValid(program)) {
-            // Set resolution uniform with window size AND texture size
-            // x = window width, y = window height, z = texture width, w = texture height
-            float resolution[4] = { float(lastWidth), float(lastHeight), textureWidth, textureHeight };
-            setUniform(u_resolution, resolution);
+            uint32_t numImages = images.size();
+            uint32_t cols, rows;
 
-            setVertexBuffer(0, vbh);
-            setIndexBuffer(ibh);
-            setTexture(0, s_tex, texture);
-            setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
-            submit(0, program);
+            // Determine grid layout based on number of images
+            if (numImages == 1) {
+                cols = 1;
+                rows = 1;
+            } else if (numImages == 2) {
+                cols = 2;
+                rows = 1;
+            } else if (numImages <= 4) {
+                cols = 2;
+                rows = 2;
+            } else if (numImages <= 6) {
+                cols = 3;
+                rows = 2;
+            } else {
+                cols = 3;
+                rows = (numImages + cols - 1) / cols;
+            }
+
+            for (uint32_t i = 0; i < numImages; ++i) {
+                if (!isValid(images[i].texture)) continue;
+
+                uint32_t col = i % cols;
+                uint32_t row = i / cols;
+
+                // Calculate position in grid
+                float cellWidth = float(lastWidth) / cols;
+                float cellHeight = float(lastHeight) / rows;
+                uint16_t viewX = uint16_t(col * cellWidth);
+                uint16_t viewY = uint16_t(row * cellHeight);
+                uint16_t viewWidth = uint16_t(cellWidth);
+                uint16_t viewHeight = uint16_t(cellHeight);
+
+                // Use a unique view ID for each image
+                uint8_t viewId = i;
+
+                // Set view rectangle for this specific cell
+                setViewRect(viewId, viewX, viewY, viewWidth, viewHeight);
+
+                // Set the view clear (only clear on first image)
+                if (i == 0) {
+                    setViewClear(viewId, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x443355FF, 1.0f, 0);
+                }
+
+                // Set resolution uniform with cell size AND image size
+                float resolution[4] = { cellWidth, cellHeight, images[i].width, images[i].height };
+                setUniform(u_resolution, resolution);
+
+                setVertexBuffer(0, vbh);
+                setIndexBuffer(ibh);
+                setTexture(0, s_tex, images[i].texture);
+                setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+                submit(viewId, program);
+            }
         }
 
         touch(0);
@@ -233,7 +322,11 @@ int execute() {
     if (isValid(s_tex)) destroy(s_tex);
     if (isValid(vbh)) destroy(vbh);
     if (isValid(ibh)) destroy(ibh);
-    if (isValid(texture)) destroy(texture);
+
+    for (auto& img : images) {
+        if (isValid(img.texture)) destroy(img.texture);
+        if (img.data) stbi_image_free(img.data);
+    }
 
     shutdown();
     ME_DestroyWindow(window);

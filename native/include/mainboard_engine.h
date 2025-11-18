@@ -40,6 +40,8 @@ ME_API ME_HANDLE ME_CreateWindow(int is_full_screen, int x, int y, int width, in
 
 ME_API ME_MESSAGE_TYPE ME_ProcessEvents(ME_HANDLE handle);
 
+ME_API ME_BOOL ME_RenderBlock(int block_id, int x, int y);
+
 ME_API ME_BOOL ME_RenderFrame(ME_HANDLE handle);
 
 ME_API ME_BOOL ME_DestroyWindow(ME_HANDLE handle);
@@ -48,9 +50,11 @@ ME_API ME_HANDLE ME_GetMEWindowHandle(ME_HANDLE handle);
 
 ME_API ME_BOOL ME_SetWindowSize(ME_HANDLE handle, int width, int height);
 
-ME_API int ME_GetWindowSize(ME_HANDLE handle, ME_Rect *rect);
+ME_API ME_BOOL ME_GetWindowSize(ME_HANDLE handle, ME_Rect *rect);
 
 ME_API ME_BOOL ME_SetWindowTitle(ME_HANDLE handle, const char *title);
+
+ME_API ME_BOOL ME_LoadBlock(int id, const char *path);
 
 #ifdef __cplusplus
 }
