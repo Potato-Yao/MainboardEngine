@@ -1,6 +1,10 @@
 #include "include/platform.h"
 #include <codecvt>
 #include <locale>
+#include <string>
+#include <fstream>
+#include <iostream>
+// #include <direct.h>
 
 #include  "include/event_message_type.h"
 
@@ -93,6 +97,25 @@ namespace MainboardEngine {
 }
 
 namespace MainboardEngine {
+
+    static bgfx::ShaderHandle loadShader(const char* filename) {
+        std::ifstream file(filename, std::ios::binary);
+        if (!file.is_open()) {
+            return BGFX_INVALID_HANDLE;
+        }
+
+        file.seekg(0, std::ios::end);
+        std::streamsize size = file.tellg();
+        file.seekg(0, std::ios::beg);
+
+        const bgfx::Memory* mem = bgfx::alloc(uint32_t(size + 1));
+        file.read(reinterpret_cast<char *>(mem->data), size);
+        mem->data[size] = '\0';
+        file.close();
+
+        return bgfx::createShader(mem);
+    }
+
     bool MEEngine::Start(MEWindow *window) {
         using namespace bgfx;
 
@@ -117,6 +140,71 @@ namespace MainboardEngine {
         if (!stat) {
             return false;
         }
+
+        struct PosTexCoord {
+            float x, y, z;
+            float u, v;
+        };
+
+        static PosTexCoord quadVertices[] = {
+            {-1.0f,  1.0f, 0.0f, 0.0f, 0.0f},
+            { 1.0f,  1.0f, 0.0f, 1.0f, 0.0f},
+            {-1.0f, -1.0f, 0.0f, 0.0f, 1.0f},
+            { 1.0f, -1.0f, 0.0f, 1.0f, 1.0f}
+        };
+
+        VertexLayout layout;
+        layout.begin()
+            .add(Attrib::Position, 3, AttribType::Float)
+            .add(Attrib::TexCoord0, 2, AttribType::Float)
+            .end();
+
+        VertexBufferHandle vbh = createVertexBuffer(makeRef(quadVertices, sizeof(quadVertices)), layout);
+
+        static const uint16_t quadIndices[] = {0, 1, 2, 1, 3, 2};
+        IndexBufferHandle ibh = createIndexBuffer(makeRef(quadIndices, sizeof(quadIndices)));
+
+        UniformHandle s_tex = createUniform("s_tex", UniformType::Sampler);
+        UniformHandle u_resolution = createUniform("u_resolution", UniformType::Vec4);
+
+        ShaderHandle vsh = BGFX_INVALID_HANDLE;
+        ShaderHandle fsh = BGFX_INVALID_HANDLE;
+
+        auto renderer = getRendererType();
+        const char* shaderDir = nullptr;
+
+        switch (renderer) {
+            case RendererType::Direct3D11:
+            case RendererType::Direct3D12:
+                shaderDir = "dx11";
+                break;
+            case RendererType::OpenGL:
+                shaderDir = "glsl";
+                break;
+            case RendererType::Vulkan:
+                shaderDir = "spirv";
+                break;
+            default:
+                shaderDir = "dx11";
+                break;
+        }
+
+        std::string vsPath = std::string("./shader/") + shaderDir + "/vs_fullscreen.bin";
+        std::string fsPath = std::string("./shader/") + shaderDir + "/fs_tiled.bin";
+
+        // // auto path = _getcwd(nullptr, 0);
+
+        vsh = loadShader(vsPath.c_str());
+        fsh = loadShader(fsPath.c_str());
+
+        ProgramHandle program = BGFX_INVALID_HANDLE;
+
+        if (isValid(vsh) && isValid(fsh)) {
+            program = createProgram(vsh, fsh, true);
+        } else {
+            return false;
+        }
+        setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x443355FF, 1.0f, 0);
 
         g_engine = std::unique_ptr<MEEngine>(temp_engine);
 
@@ -273,6 +361,7 @@ bool Win32Platform::CreateWindow(
     auto temp_window = reinterpret_cast<Win32Window *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
     bool state = MEEngine::Start(temp_window);
+    // bool state = true;
 
     window = temp_window;
 
