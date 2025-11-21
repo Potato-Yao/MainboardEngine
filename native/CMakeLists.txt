@@ -161,7 +161,8 @@ add_executable(test_native
         tests/win32_window_test.h
         tests/bgfx_test.h
         tests/wayland_window_test.h
-        tests/window_test.h)
+        tests/window_test.h
+        tests/engine_render_test.h)
 
 # Add Wayland protocol sources if available
 if (WAYLAND_FOUND AND WAYLAND_PROTOCOL_SOURCES)

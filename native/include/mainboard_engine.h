@@ -42,7 +42,9 @@ ME_API ME_MESSAGE_TYPE ME_ProcessEvents(ME_HANDLE handle);
 
 ME_API ME_BOOL ME_RenderBlock(int block_id, int x, int y);
 
-ME_API ME_BOOL ME_RenderFrame(ME_HANDLE handle);
+ME_API int ME_RenderFrame(ME_HANDLE handle);
+
+ME_API ME_BOOL ME_ClearView(ME_HANDLE handle);
 
 ME_API ME_BOOL ME_DestroyWindow(ME_HANDLE handle);
 

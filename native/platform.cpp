@@ -50,7 +50,11 @@ ME_API ME_BOOL ME_RenderBlock(int block_id, int x, int y) {
     return g_engine->RenderBlock(block_id, x, y);
 }
 
-ME_API ME_BOOL ME_RenderFrame(ME_HANDLE handle) {
+ME_API int ME_RenderFrame(ME_HANDLE handle) {
+    return g_engine->Render();
+}
+
+ME_API ME_BOOL ME_ClearView(ME_HANDLE handle) {
     return ME_TRUE;
 }
 
@@ -158,14 +162,16 @@ namespace MainboardEngine {
             .add(Attrib::Position, 3, AttribType::Float)
             .add(Attrib::TexCoord0, 2, AttribType::Float)
             .end();
-
         VertexBufferHandle vbh = createVertexBuffer(makeRef(quadVertices, sizeof(quadVertices)), layout);
-
         static const uint16_t quadIndices[] = {0, 1, 2, 1, 3, 2};
         IndexBufferHandle ibh = createIndexBuffer(makeRef(quadIndices, sizeof(quadIndices)));
+        temp_engine->m_vbh = vbh;
+        temp_engine->m_ibh = ibh;
 
         UniformHandle s_tex = createUniform("s_tex", UniformType::Sampler);
         UniformHandle u_resolution = createUniform("u_resolution", UniformType::Vec4);
+        temp_engine->m_s_tex = s_tex;
+        temp_engine->m_u_resolution = u_resolution;
 
         ShaderHandle vsh = BGFX_INVALID_HANDLE;
         ShaderHandle fsh = BGFX_INVALID_HANDLE;
@@ -196,11 +202,13 @@ namespace MainboardEngine {
 
         vsh = loadShader(vsPath.c_str());
         fsh = loadShader(fsPath.c_str());
-
         ProgramHandle program = BGFX_INVALID_HANDLE;
 
         if (isValid(vsh) && isValid(fsh)) {
             program = createProgram(vsh, fsh, true);
+            temp_engine->m_program = program;
+            temp_engine->m_vsh = vsh;
+            temp_engine->m_fsh = fsh;
         } else {
             return false;
         }
@@ -218,6 +226,7 @@ namespace MainboardEngine {
         }
 
         Block block = {};
+        block.id = id;
 
         auto data = stbi_load(path.c_str(), &block.width, &block.height, &block.channels, 4);
         if (!data) {
@@ -249,11 +258,55 @@ namespace MainboardEngine {
         if (m_blocks[id] == std::nullopt) {
             return false;
         }
+        auto block = &m_blocks[id].value();
+        bgfx::ViewId view_id = static_cast<bgfx::ViewId>(block->id);
 
+        auto window_rect = m_window->GetSize();
+        // bgfx::setViewRect(0, 0, 0, GetRectWidth(&window_rect), GetRectHeight(&window_rect));
 
+        if (!bgfx::isValid(m_program)) {
+            return false;
+        }
+        if (!bgfx::isValid(m_blocks[id].value().texture.value())) {
+            return false;
+        }
+
+        uint16_t viewX = static_cast<uint16_t>(x);
+        uint16_t viewY = static_cast<uint16_t>(y);
+        uint16_t viewWidth = static_cast<uint16_t>(block->width);
+        uint16_t viewHeight = static_cast<uint16_t>(block->height);
+        // bgfx::setViewRect(block->id, viewX, viewY, viewWidth, viewHeight);
+        bgfx::setViewRect(view_id, viewX, viewY, block->width, block->height);
+        // std::cout << "Rendering block ID " << block->id << " at (" << x << ", " << y << ") with size ("
+                  // << block->width << "x" << block->height << ")" << std::endl;
+
+        // if (block->id == 0) {
+        //     bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x443355FF, 1.0f, 0);
+        // }
+
+        float resolution[4] = {
+            static_cast<float>(viewWidth),
+            static_cast<float>(viewHeight),
+            static_cast<float>(block->width),
+            static_cast<float>(block->height)
+        };
+        bgfx::setUniform(m_u_resolution, resolution);
+        bgfx::setVertexBuffer(0, m_vbh);
+        bgfx::setIndexBuffer(m_ibh);
+        bgfx::setTexture(0, m_s_tex, block->texture.value());
+        bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+        bgfx::submit(view_id, m_program);
 
         return true;
     }
+
+    int MEEngine::Render() {
+        bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x443355FF, 1.0f, 0);
+        bgfx::touch(0);
+        int frame_num = bgfx::frame();
+        return frame_num;
+    }
+
 
     //
     // bool MEEngine::Render() {

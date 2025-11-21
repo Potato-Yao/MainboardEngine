@@ -77,6 +77,11 @@ namespace MainboardEngine {
         std::optional<Block> m_blocks[BLOCK_ARRAY_SIZE];
         bgfx::VertexBufferHandle m_vbh;
         bgfx::IndexBufferHandle m_ibh;
+        bgfx::ShaderHandle m_vsh;
+        bgfx::ShaderHandle m_fsh;
+        bgfx::UniformHandle m_s_tex;
+        bgfx::UniformHandle m_u_resolution;
+        bgfx::ProgramHandle m_program;
 
     public:
         virtual ~MEEngine() = default;
@@ -91,8 +96,9 @@ namespace MainboardEngine {
 
         // bool RegistryRenderBlock(std::string block_name, int x, int y);
 
-        // bool Render();
+        int Render();
 
+        // bool ClearView();
     };
 }
 
