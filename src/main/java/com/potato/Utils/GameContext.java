@@ -6,6 +6,7 @@ public class GameContext {
     private static GameContext gameContext;
     private static ArrayList context = new ArrayList<String>();
     private static String currentContext = "NO_CONTEXT";
+    private static String currentMap = "NO_MAP";
 
     public enum CommonContext {
         ENGINE_START,
@@ -36,5 +37,13 @@ public class GameContext {
 
     public String getCurrentContext() {
         return currentContext;
+    }
+
+    public String getCurrentMap() {
+        return currentMap;
+    }
+
+    public void setCurrentMap(String mapId) {
+        currentMap = mapId;
     }
 }

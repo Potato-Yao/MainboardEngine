@@ -58,6 +58,8 @@ ME_API ME_BOOL ME_SetWindowTitle(ME_HANDLE handle, const char *title);
 
 ME_API ME_BOOL ME_LoadBlock(int id, const char *path);
 
+ME_API ME_BOOL ME_ClearBlock();
+
 #ifdef __cplusplus
 }
 #endif

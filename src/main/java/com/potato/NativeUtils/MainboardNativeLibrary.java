@@ -14,7 +14,11 @@ public interface MainboardNativeLibrary extends Library {
 
     int ME_ProcessEvents(Pointer handle);
 
+    int ME_RenderBlock(int block_id, int x, int y);
+
     int ME_RenderFrame(Pointer handle);
+
+    int ME_ClearView(Pointer handle);
 
     int ME_DestroyWindow(Pointer handle);
 
@@ -25,4 +29,8 @@ public interface MainboardNativeLibrary extends Library {
     int ME_GetWindowSize(Pointer handle, WindowRect.ByReference rect);
 
     int ME_SetWindowTitle(Pointer handle, String title);
+
+    int ME_LoadBlock(int id, String path);
+
+    int ME_ClearBlock();
 }

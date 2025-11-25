@@ -94,6 +94,8 @@ namespace MainboardEngine {
 
         bool RenderBlock(int id, int x, int y);
 
+        static bool ClearBlock();
+
         // bool RegistryRenderBlock(std::string block_name, int x, int y);
 
         int Render();

@@ -27,7 +27,7 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("net.java.dev.jna:jna:5.14.0")
     implementation("net.java.dev.jna:jna-platform:5.14.0")
-    implementation("io.ous:jtoml:2.0.0")
+    implementation("com.moandjiezana.toml:toml4j:0.7.2")
 }
 
 tasks.test {

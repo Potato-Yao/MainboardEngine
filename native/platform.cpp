@@ -90,6 +90,11 @@ ME_API ME_BOOL ME_LoadBlock(int id, const char *path) {
     return MainboardEngine::MEEngine::RegistryBlock(id, path);
 }
 
+
+ME_API ME_BOOL ME_ClearBlock() {
+    return MainboardEngine::MEEngine::ClearBlock();
+}
+
 namespace MainboardEngine {
     static int GetRectWidth(ME_Rect *rect) {
         return rect->right - rect->left;
@@ -244,6 +249,21 @@ namespace MainboardEngine {
         return true;
     }
 
+    bool MEEngine::ClearBlock() {
+        for (int i = 0; i < BLOCK_ARRAY_SIZE; ++i) {
+            if (g_engine->m_blocks[i] != std::nullopt) {
+                auto block = &g_engine->m_blocks[i].value();
+                if (bgfx::isValid(block->texture.value())) {
+                    bgfx::destroy(block->texture.value());
+                }
+                g_engine->m_blocks[i] = std::nullopt;
+            }
+        }
+
+        return true;
+    }
+
+
     // bool MEEngine::RegistryRenderBlock(std::string block_name, int x, int y) {
     //     RenderBlockCommand command = {};
     //     command.block_name = block_name;
@@ -256,6 +276,7 @@ namespace MainboardEngine {
     //
     bool MEEngine::RenderBlock(int id, int x, int y) {
         if (m_blocks[id] == std::nullopt) {
+            std::cout << "FUCK at " << __LINE__ << std::endl;
             return false;
         }
         auto block = &m_blocks[id].value();
@@ -265,9 +286,11 @@ namespace MainboardEngine {
         // bgfx::setViewRect(0, 0, 0, GetRectWidth(&window_rect), GetRectHeight(&window_rect));
 
         if (!bgfx::isValid(m_program)) {
+            std::cout << "FUCK at " << __LINE__ << std::endl;
             return false;
         }
         if (!bgfx::isValid(m_blocks[id].value().texture.value())) {
+            std::cout << "FUCK at " << __LINE__ << std::endl;
             return false;
         }
 

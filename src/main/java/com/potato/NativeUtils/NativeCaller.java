@@ -84,4 +84,35 @@ public class NativeCaller {
         library.ME_GetWindowSize(windowHandle, rect);
         return rect;
     }
+
+    public void loadBlock(int id, String path) {
+        if (library.ME_LoadBlock(id, path) == 0) {
+            System.out.println("fucking path: " + path);
+            throw new RuntimeException("Failed to load block from " + path);
+        }
+    }
+
+    public void clearBlock() {
+        if (library.ME_ClearBlock() == 0) {
+            throw new RuntimeException("Failed to clear blocks.");
+        }
+    }
+
+    public void renderBlock(int blockId, int x, int y) {
+        if (library.ME_RenderBlock(blockId, x, y) == 0) {
+            throw new RuntimeException("Failed to render block " + blockId);
+        }
+    }
+
+    public void renderFrame() {
+        if (library.ME_RenderFrame(windowHandle) == 0) {
+            throw new RuntimeException("Failed to render frame.");
+        }
+    }
+
+    public void clearView() {
+        if (library.ME_ClearView(windowHandle) == 0) {
+            throw new RuntimeException("Failed to clear view.");
+        }
+    }
 }

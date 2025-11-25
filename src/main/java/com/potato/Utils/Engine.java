@@ -1,8 +1,10 @@
 package com.potato.Utils;
 
 import com.potato.Config;
+import com.potato.Map.MapManager;
 import com.potato.NativeUtils.NativeCaller;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class Engine {
@@ -12,6 +14,7 @@ public class Engine {
     public final EngineHelper engineHelper = new EngineHelper(this);
     public final KeyboardManager keyboardManager = KeyboardManager.getManager();
     public final CursorManager cursorManager = CursorManager.getManager();
+    public final MapManager mapManager = MapManager.getMapManager();
 
     public Engine() {
         this.caller = new NativeCaller();
@@ -23,6 +26,11 @@ public class Engine {
         caller.createWindow(isFullScreen, x, y, width, height, title);
         Config.gameContext.adjustContext("ENGINE_START");
 
+        mapManager.registerMap(Config.DEFAULT_MAP_ID, new File("./test/map/main_map.toml"));
+        mapManager.loadMap(Config.DEFAULT_MAP_ID, caller);
+        registerEventProcessor(((_, caller) -> {
+            mapManager.renderMap(caller);
+        }));
         caller.processEvents(eventProcessers);
 
         hasStarted = true;
