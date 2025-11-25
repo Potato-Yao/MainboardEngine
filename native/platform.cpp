@@ -150,6 +150,8 @@ namespace MainboardEngine {
             return false;
         }
 
+        bgfx::setViewRect(0, 0, 0, init.resolution.width, init.resolution.height);
+
         struct PosTexCoord {
             float x, y, z;
             float u, v;
@@ -276,30 +278,31 @@ namespace MainboardEngine {
     //
     bool MEEngine::RenderBlock(int id, int x, int y) {
         if (m_blocks[id] == std::nullopt) {
-            std::cout << "FUCK at " << __LINE__ << std::endl;
             return false;
         }
         auto block = &m_blocks[id].value();
-        bgfx::ViewId view_id = static_cast<bgfx::ViewId>(block->id);
+        // bgfx::ViewId view_id = static_cast<bgfx::ViewId>(block->id);
 
-        auto window_rect = m_window->GetSize();
         // bgfx::setViewRect(0, 0, 0, GetRectWidth(&window_rect), GetRectHeight(&window_rect));
 
         if (!bgfx::isValid(m_program)) {
-            std::cout << "FUCK at " << __LINE__ << std::endl;
             return false;
         }
         if (!bgfx::isValid(m_blocks[id].value().texture.value())) {
-            std::cout << "FUCK at " << __LINE__ << std::endl;
             return false;
         }
+
+        auto window_rect = m_window->GetSize();
+        uint16_t screenW = static_cast<uint16_t>(GetRectWidth(&window_rect));
+        uint16_t screenH = static_cast<uint16_t>(GetRectHeight(&window_rect));
 
         uint16_t viewX = static_cast<uint16_t>(x);
         uint16_t viewY = static_cast<uint16_t>(y);
         uint16_t viewWidth = static_cast<uint16_t>(block->width);
         uint16_t viewHeight = static_cast<uint16_t>(block->height);
         // bgfx::setViewRect(block->id, viewX, viewY, viewWidth, viewHeight);
-        bgfx::setViewRect(view_id, viewX, viewY, block->width, block->height);
+        bgfx::setScissor(viewX, viewY, viewWidth, viewHeight);
+        // bgfx::setViewRect(view_id, viewX, viewY, block->width, block->height);
         // std::cout << "Rendering block ID " << block->id << " at (" << x << ", " << y << ") with size ("
                   // << block->width << "x" << block->height << ")" << std::endl;
 
@@ -308,8 +311,8 @@ namespace MainboardEngine {
         // }
 
         float resolution[4] = {
-            static_cast<float>(viewWidth),
-            static_cast<float>(viewHeight),
+            static_cast<float>(screenW),
+            static_cast<float>(screenH),
             static_cast<float>(block->width),
             static_cast<float>(block->height)
         };
@@ -318,7 +321,7 @@ namespace MainboardEngine {
         bgfx::setIndexBuffer(m_ibh);
         bgfx::setTexture(0, m_s_tex, block->texture.value());
         bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
-        bgfx::submit(view_id, m_program);
+        bgfx::submit(0, m_program);
 
         return true;
     }

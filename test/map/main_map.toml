@@ -1,7 +1,9 @@
+block_width = 48
+block_height = 48
+
 [[block-item]]
 id = 0
 path = "./test/image/Ice_Block_(placed).png"
-
 
 
 [[block]]
@@ -9,3 +11,12 @@ x = 0
 y = 0
 id = 0
 
+[[block]]
+x = 1
+y = 0
+id = 0
+
+[[block]]
+x = 2
+y = 0
+id = 0

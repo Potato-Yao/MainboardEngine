@@ -28,7 +28,7 @@ public class Engine {
 
         mapManager.registerMap(Config.DEFAULT_MAP_ID, new File("./test/map/main_map.toml"));
         mapManager.loadMap(Config.DEFAULT_MAP_ID, caller);
-        registerEventProcessor(((_, caller) -> {
+        registerEventProcessor(((gameContext, caller) -> {
             mapManager.renderMap(caller);
         }));
         caller.processEvents(eventProcessers);

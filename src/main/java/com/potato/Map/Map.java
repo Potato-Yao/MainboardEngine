@@ -8,6 +8,8 @@ public class Map {
     // use bucket to accelerate access speed
     private ArrayList<BlockItem> blockItems;
     private ArrayList<Block> blocks;
+    private int blockWidth;
+    private int blockHeight;
 
     public Map(ArrayList<BlockItem> blockItems, ArrayList<Block> blocks) {
         this.blocks = blocks;
@@ -35,5 +37,21 @@ public class Map {
      */
     public ArrayList<Block> getRenderedBlocks() {
         return blocks;
+    }
+
+    public void setBlockHeight(int blockHeight) {
+        this.blockHeight = blockHeight;
+    }
+
+    public void setBlockWidth(int blockWidth) {
+        this.blockWidth = blockWidth;
+    }
+
+    public int getBlockWidth() {
+        return blockWidth;
+    }
+
+    public int getBlockHeight() {
+        return blockHeight;
     }
 }

@@ -64,6 +64,11 @@ public class MapManager {
 
         Map map = new Map(blockItems, blocks);
 
+        int blockWidth = mapFileToml.getLong("block_width").intValue();
+        int blockHeight = mapFileToml.getLong("block_height").intValue();
+        map.setBlockWidth(blockWidth);
+        map.setBlockHeight(blockHeight);
+
         maps.put(mapId, map);
     }
 
@@ -93,7 +98,7 @@ public class MapManager {
 
         Map map = maps.get(mapId);
         for (Block block : map.getRenderedBlocks()) {
-            caller.renderBlock(block.getId(), block.getX(), block.getY());
+            caller.renderBlock(block.getId(), block.getX() * map.getBlockWidth(), block.getY() * map.getBlockHeight());
         }
 
         caller.renderFrame();
