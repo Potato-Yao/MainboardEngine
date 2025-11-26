@@ -29,15 +29,15 @@ namespace MainboardEngine {
         int channels;
     };
 
-//     struct Command {
-//         virtual ~Command() = default;
-//     };
-//
-//     struct RenderBlockCommand : Command {
-//         int x;
-//         int y;
-//         std::string block_name;
-//     };
+    //     struct Command {
+    //         virtual ~Command() = default;
+    //     };
+    //
+    //     struct RenderBlockCommand : Command {
+    //         int x;
+    //         int y;
+    //         std::string block_name;
+    //     };
 }
 
 namespace MainboardEngine {
@@ -123,7 +123,8 @@ namespace MainboardEngine {
 
         void Shutdown() override;
 
-        bool CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title, MEWindow *&window) override;
+        bool CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title,
+                          MEWindow *&window) override;
 
         ME_MESSAGE_TYPE ProcessEvents(ME_HANDLE handle) override;
     };
@@ -193,7 +194,9 @@ namespace MainboardEngine {
         static void registry_global_remove_handler(void *data, void *registry, uint32_t name);
 
     public:
-        WaylandPlatform() : display(nullptr), compositor(nullptr), shm(nullptr), xdg_wm_base(nullptr) {}
+        WaylandPlatform() : display(nullptr), compositor(nullptr), shm(nullptr), xdg_wm_base(nullptr) {
+        }
+
         ~WaylandPlatform() override;
 
         bool Initialize() override;

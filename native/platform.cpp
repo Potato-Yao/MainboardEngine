@@ -106,8 +106,7 @@ namespace MainboardEngine {
 }
 
 namespace MainboardEngine {
-
-    static bgfx::ShaderHandle loadShader(const char* filename) {
+    static bgfx::ShaderHandle loadShader(const char *filename) {
         std::ifstream file(filename, std::ios::binary);
         if (!file.is_open()) {
             return BGFX_INVALID_HANDLE;
@@ -117,7 +116,7 @@ namespace MainboardEngine {
         std::streamsize size = file.tellg();
         file.seekg(0, std::ios::beg);
 
-        const bgfx::Memory* mem = bgfx::alloc(uint32_t(size + 1));
+        const bgfx::Memory *mem = bgfx::alloc(static_cast<uint32_t>(size + 1));
         file.read(reinterpret_cast<char *>(mem->data), size);
         mem->data[size] = '\0';
         file.close();
@@ -150,7 +149,7 @@ namespace MainboardEngine {
             return false;
         }
 
-        bgfx::setViewRect(0, 0, 0, init.resolution.width, init.resolution.height);
+        setViewRect(0, 0, 0, init.resolution.width, init.resolution.height);
 
         struct PosTexCoord {
             float x, y, z;
@@ -158,17 +157,17 @@ namespace MainboardEngine {
         };
 
         static PosTexCoord quadVertices[] = {
-            {-1.0f,  1.0f, 0.0f, 0.0f, 0.0f},
-            { 1.0f,  1.0f, 0.0f, 1.0f, 0.0f},
+            {-1.0f, 1.0f, 0.0f, 0.0f, 0.0f},
+            {1.0f, 1.0f, 0.0f, 1.0f, 0.0f},
             {-1.0f, -1.0f, 0.0f, 0.0f, 1.0f},
-            { 1.0f, -1.0f, 0.0f, 1.0f, 1.0f}
+            {1.0f, -1.0f, 0.0f, 1.0f, 1.0f}
         };
 
         VertexLayout layout;
         layout.begin()
-            .add(Attrib::Position, 3, AttribType::Float)
-            .add(Attrib::TexCoord0, 2, AttribType::Float)
-            .end();
+                .add(Attrib::Position, 3, AttribType::Float)
+                .add(Attrib::TexCoord0, 2, AttribType::Float)
+                .end();
         VertexBufferHandle vbh = createVertexBuffer(makeRef(quadVertices, sizeof(quadVertices)), layout);
         static const uint16_t quadIndices[] = {0, 1, 2, 1, 3, 2};
         IndexBufferHandle ibh = createIndexBuffer(makeRef(quadIndices, sizeof(quadIndices)));
@@ -184,7 +183,7 @@ namespace MainboardEngine {
         ShaderHandle fsh = BGFX_INVALID_HANDLE;
 
         auto renderer = getRendererType();
-        const char* shaderDir = nullptr;
+        const char *shaderDir = nullptr;
 
         switch (renderer) {
             case RendererType::Direct3D11:
@@ -304,7 +303,7 @@ namespace MainboardEngine {
         bgfx::setScissor(viewX, viewY, viewWidth, viewHeight);
         // bgfx::setViewRect(view_id, viewX, viewY, block->width, block->height);
         // std::cout << "Rendering block ID " << block->id << " at (" << x << ", " << y << ") with size ("
-                  // << block->width << "x" << block->height << ")" << std::endl;
+        // << block->width << "x" << block->height << ")" << std::endl;
 
         // if (block->id == 0) {
         //     bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x443355FF, 1.0f, 0);
@@ -352,144 +351,140 @@ namespace MainboardEngine {
 
 #ifdef _WIN32
 namespace MainboardEngine {
-
 #ifndef ME_WINDOWS_H_INCLUDED
 #include <windows.h>
 #define ME_WINDOWS_H_INCLUDED
 #endif
 
-static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    Win32Window *window = reinterpret_cast<Win32Window *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-    switch (msg) {
-        case WM_DESTROY:
-        case WM_CLOSE:
-            PostQuitMessage(0);
-            return 0;
-        default:
-            return DefWindowProc(hwnd, msg, wParam, lParam);
-    }
-}
-
-bool Win32Platform::Initialize() {
-    return true;
-}
-
-void Win32Platform::Shutdown() {
-}
-
-ME_MESSAGE_TYPE Win32Platform::ProcessEvents(ME_HANDLE handle) {
-    MSG msg = {};
-    if (!PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-        return ME_NO_EVENT_MESSAGE; // 0 means no message
+    static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+        Win32Window *window = reinterpret_cast<Win32Window *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+        switch (msg) {
+            case WM_DESTROY:
+            case WM_CLOSE:
+                PostQuitMessage(0);
+                return 0;
+            default:
+                return DefWindowProc(hwnd, msg, wParam, lParam);
+        }
     }
 
-    ME_MESSAGE_TYPE mes;
-    switch (msg.message) {
-        case WM_QUIT:
-            mes = ME_QUIT_MESSAGE;
-            break;
-        default:
-            mes = ME_NO_EVENT_MESSAGE;
+    bool Win32Platform::Initialize() {
+        return true;
     }
 
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-
-    return mes;
-}
-
-
-bool Win32Platform::CreateWindow(
-    int is_full_screen, int x, int y, int width, int height, const char *title, MEWindow *&window) {
-    static bool has_registered = false;
-    if (!has_registered) {
-        has_registered = true;
-        WNDCLASSEX wc = {};
-        wc.cbSize = sizeof(wc);
-        wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-        wc.lpfnWndProc = WindowProc;
-        wc.cbClsExtra = 0;
-        wc.cbWndExtra = 0;
-        wc.hInstance = GetModuleHandle(nullptr);
-        wc.hIcon = nullptr;
-        wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
-        wc.hbrBackground = nullptr;
-        wc.lpszMenuName = nullptr;
-        wc.lpszClassName = this->className.c_str();
-        wc.hIconSm = nullptr;
-        RegisterClassEx(&wc);
+    void Win32Platform::Shutdown() {
     }
 
-    auto style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
-    RECT wr = {0, 0, width, height};
-    AdjustWindowRect(&wr, style, FALSE);
+    ME_MESSAGE_TYPE Win32Platform::ProcessEvents(ME_HANDLE handle) {
+        MSG msg = {};
+        if (!PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+            return ME_NO_EVENT_MESSAGE; // 0 means no message
+        }
 
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t> > converter;
-    HWND hwnd = CreateWindowW(converter.from_bytes(this->className).c_str(), converter.from_bytes(title).c_str(),
-                              style, x, y, wr.right - wr.left, wr.bottom - wr.top, nullptr, nullptr,
-                              GetModuleHandle(nullptr), nullptr);
-    if (!hwnd) {
-        return false;
+        ME_MESSAGE_TYPE mes;
+        switch (msg.message) {
+            case WM_QUIT:
+                mes = ME_QUIT_MESSAGE;
+                break;
+            default:
+                mes = ME_NO_EVENT_MESSAGE;
+        }
+
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+
+        return mes;
     }
 
-    ShowWindow(hwnd, SW_SHOW);
-    UpdateWindow(hwnd);
 
-    SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(new Win32Window(hwnd)));
+    bool Win32Platform::CreateWindow(
+        int is_full_screen, int x, int y, int width, int height, const char *title, MEWindow *&window) {
+        static bool has_registered = false;
+        if (!has_registered) {
+            has_registered = true;
+            WNDCLASSEX wc = {};
+            wc.cbSize = sizeof(wc);
+            wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+            wc.lpfnWndProc = WindowProc;
+            wc.cbClsExtra = 0;
+            wc.cbWndExtra = 0;
+            wc.hInstance = GetModuleHandle(nullptr);
+            wc.hIcon = nullptr;
+            wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+            wc.hbrBackground = nullptr;
+            wc.lpszMenuName = nullptr;
+            wc.lpszClassName = this->className.c_str();
+            wc.hIconSm = nullptr;
+            RegisterClassEx(&wc);
+        }
 
-    auto temp_window = reinterpret_cast<Win32Window *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+        auto style = WS_OVERLAPPEDWINDOW | WS_VISIBLE;
+        RECT wr = {0, 0, width, height};
+        AdjustWindowRect(&wr, style, FALSE);
 
-    bool state = MEEngine::Start(temp_window);
-    // bool state = true;
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t> > converter;
+        HWND hwnd = CreateWindowW(converter.from_bytes(this->className).c_str(), converter.from_bytes(title).c_str(),
+                                  style, x, y, wr.right - wr.left, wr.bottom - wr.top, nullptr, nullptr,
+                                  GetModuleHandle(nullptr), nullptr);
+        if (!hwnd) {
+            return false;
+        }
 
-    window = temp_window;
+        ShowWindow(hwnd, SW_SHOW);
+        UpdateWindow(hwnd);
 
-    return state;
-}
+        SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(new Win32Window(hwnd)));
+
+        auto temp_window = reinterpret_cast<Win32Window *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
+        bool state = MEEngine::Start(temp_window);
+        // bool state = true;
+
+        window = temp_window;
+
+        return state;
+    }
 }
 
 namespace MainboardEngine {
-
-
-
 #ifndef ME_WINDOWS_H_INCLUDED
 #include <windows.h>
 #define ME_WINDOWS_H_INCLUDED
 #endif
 
-bool Win32Window::SetSize(int width, int height) {
-    RECT rect = {};
-    GetWindowRect(m_hwnd, &rect);
-    SetWindowPos(m_hwnd, nullptr, rect.left, rect.top, width, height, SWP_NOZORDER | SWP_NOACTIVATE);
-    return true;
-}
+    bool Win32Window::SetSize(int width, int height) {
+        RECT rect = {};
+        GetWindowRect(m_hwnd, &rect);
+        SetWindowPos(m_hwnd, nullptr, rect.left, rect.top, width, height, SWP_NOZORDER | SWP_NOACTIVATE);
+        return true;
+    }
 
-ME_Rect Win32Window::GetSize() {
-    RECT rect = {};
-    GetWindowRect(m_hwnd, &rect);
-    ME_Rect me_rect = {};
-    me_rect.left = rect.left;
-    me_rect.right = rect.right;
-    me_rect.top = rect.top;
-    me_rect.bottom = rect.bottom;
-    return me_rect;
-}
+    ME_Rect Win32Window::GetSize() {
+        RECT rect = {};
+        GetWindowRect(m_hwnd, &rect);
+        ME_Rect me_rect = {};
+        me_rect.left = rect.left;
+        me_rect.right = rect.right;
+        me_rect.top = rect.top;
+        me_rect.bottom = rect.bottom;
+        return me_rect;
+    }
 
-bool Win32Window::SetPosition(int x, int y) {
-    RECT rect = {};
-    GetWindowRect(m_hwnd, &rect);
-    SetWindowPos(m_hwnd, nullptr, x, y, rect.right - rect.left, rect.top - rect.bottom,
-                 SWP_NOZORDER | SWP_NOACTIVATE);
-    return true;
-}
+    bool Win32Window::SetPosition(int x, int y) {
+        RECT rect = {};
+        GetWindowRect(m_hwnd, &rect);
+        SetWindowPos(m_hwnd, nullptr, x, y, rect.right - rect.left, rect.top - rect.bottom,
+                     SWP_NOZORDER | SWP_NOACTIVATE);
+        return true;
+    }
 
-bool Win32Window::SetTitle(const char *title) {
-    return SetWindowText(this->m_hwnd, title) != 0;
-}
+    bool Win32Window::SetTitle(const char *title) {
+        return SetWindowText(this->m_hwnd, title) != 0;
+    }
 
-void *Win32Window::GetMEWindowHandle() {
-    return this->m_hwnd;
-}
+    void *Win32Window::GetMEWindowHandle() {
+        return this->m_hwnd;
+    }
 }
 
 #endif
@@ -502,25 +497,25 @@ namespace MainboardEngine {
             return true;
         }
 #ifdef __ME_USE_WAYLAND__
-        m_platform = std::make_unique<WaylandPlatform>();
+m_platform= std::make_unique<WaylandPlatform>();
 #endif
-        if (!m_platform) {
+if (!m_platform) {
             return false;
         }
         return m_platform->Initialize();
     }
 
-    void LinuxPlatform::Shutdown() {
-        m_platform->Shutdown();
-    }
+void LinuxPlatform::Shutdown() {
+    m_platform->Shutdown();
+}
 
-    MEWindow *LinuxPlatform::CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title) {
-        return m_platform->CreateWindow(is_full_screen, x, y, width, height, title);
-    }
+MEWindow *LinuxPlatform::CreateWindow(int is_full_screen, int x, int y, int width, int height, const char *title) {
+    return m_platform->CreateWindow(is_full_screen, x, y, width, height, title);
+}
 
-    int LinuxPlatform::ProcessEvents(ME_HANDLE handle) {
-        return m_platform->ProcessEvents(handle);
-    }
+int LinuxPlatform::ProcessEvents(ME_HANDLE handle) {
+    return m_platform->ProcessEvents(handle);
+}
 }
 
 namespace MainboardEngine {
@@ -583,7 +578,8 @@ namespace MainboardEngine {
         wl_registry *registry = wl_display_get_registry(static_cast<wl_display *>(display));
 
         static const wl_registry_listener registry_listener = {
-            .global = reinterpret_cast<void (*)(void *, wl_registry *, uint32_t, const char *, uint32_t)>(registry_global_handler),
+            .global = reinterpret_cast<void (*)(void *, wl_registry *, uint32_t, const char *, uint32_t)>(
+                registry_global_handler),
             .global_remove = reinterpret_cast<void (*)(void *, wl_registry *, uint32_t)>(registry_global_remove_handler)
         };
 
@@ -614,23 +610,23 @@ namespace MainboardEngine {
 
 namespace MainboardEngine {
     bool WaylandWindow::SetSize(int width, int height) {
-        return false;  // TODO: implement
+        return false; // TODO: implement
     }
 
     ME_Rect WaylandWindow::GetSize() {
-        return {};  // TODO: implement
+        return {}; // TODO: implement
     }
 
     bool WaylandWindow::SetPosition(int x, int y) {
-        return false;  // TODO: implement
+        return false; // TODO: implement
     }
 
     void *WaylandWindow::GetMEWindowHandle() {
-        return nullptr;  // TODO: implement
+        return nullptr; // TODO: implement
     }
 
     bool WaylandWindow::SetTitle(const char *title) {
-        return false;  // TODO: implement
+        return false; // TODO: implement
     }
 }
 

@@ -1,11 +1,5 @@
 package com.potato.Map;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-
 public class BlockItem {
     private int id;
     private String path;
