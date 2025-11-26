@@ -2,6 +2,8 @@ version = "b0.0.1"
 
 block_count = 2048
 
-defaut_map = "main_map"
+default_map = "main_map"
+
+map_location = "./test/map/"
 
 engine = "auto"

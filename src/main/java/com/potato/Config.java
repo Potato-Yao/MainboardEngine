@@ -12,7 +12,8 @@ public class Config {
     public static EngineType engineType;
     public static OSType os;
     public static GameContext gameContext = GameContext.getGameContext();
-    public static String default_map_id;
+    public static String defaultMapId;
+    public static String mapLocation;
 
     public static void init() {
         String osName = System.getProperty("os.name");
@@ -23,7 +24,7 @@ public class Config {
         } else if (osName.contains("Linux")) {
             os = OSType.Linux;
         }
-        default_map_id = "main_map";
+        defaultMapId = "main_map";
     }
 
     public static void init(File configFilePath) {
@@ -36,15 +37,27 @@ public class Config {
         int blockArraySizeConfig = configToml.getLong("block_count").intValue();
         String defaultMapIdConfig = configToml.getString("default_map");
         String engineTypeConfig = configToml.getString("engine");
+        String mapLocationConfig = configToml.getString("map_location");
 
         blockArraySize = blockArraySizeConfig;
-        default_map_id = defaultMapIdConfig;
-        if (engineTypeConfig.equals("Directx11")) {
+        defaultMapId = defaultMapIdConfig;
+        if (engineTypeConfig.equals("auto")) {
+            if (os == OSType.Windows) {
+                engineType = EngineType.Directx11;
+            } else {
+                engineType = EngineType.OpenGL;
+            }
+        }
+        else if (engineTypeConfig.equals("Directx11")) {
             engineType = EngineType.Directx11;
         } else if (engineTypeConfig.equals("Directx12")) {
             engineType = EngineType.Directx12;
         } else if (engineTypeConfig.equals("OpenGL")) {
             engineType = EngineType.OpenGL;
+        } else {
+            throw new RuntimeException("Unsupported engine type in config: " + engineTypeConfig);
         }
+        defaultMapId = defaultMapIdConfig;
+        mapLocation = mapLocationConfig;
     }
 }

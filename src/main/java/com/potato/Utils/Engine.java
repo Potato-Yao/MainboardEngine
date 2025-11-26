@@ -27,8 +27,8 @@ public class Engine {
         caller.createWindow(isFullScreen, x, y, width, height, title);
         Config.gameContext.adjustContext("ENGINE_START");
 
-        mapManager.registerMap(Config.default_map_id, new File("./test/map/main_map.toml"));
-        mapManager.loadMap(Config.default_map_id, caller);
+        mapManager.registerMap(Config.defaultMapId, Config.defaultMapId);
+        mapManager.loadMap(Config.defaultMapId, caller);
         registerEventProcessor(((gameContext, caller) -> {
             mapManager.renderMap(caller);
         }));

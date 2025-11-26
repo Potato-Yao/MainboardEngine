@@ -33,12 +33,13 @@ public class MapManager {
         maps.put(mapId, map);
     }
 
-    public void registerMap(String mapId, File mapFile) {
+    public void registerMap(String mapId, String mapFileName) {
+        File mapFile = new File(Config.mapLocation + mapFileName + ".toml");
         if (maps.containsKey(mapId)) {
             throw new RuntimeException("Map " + mapId + " already registered.");
         }
         if (!mapFile.exists()) {
-            throw new RuntimeException("Map " + mapId + " does not exist.");
+            throw new RuntimeException("Map " + mapId + " does not exist at " + mapFile.getAbsolutePath());
         }
 
         Toml mapFileToml = new Toml().read(mapFile);
