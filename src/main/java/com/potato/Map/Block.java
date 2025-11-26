@@ -6,6 +6,7 @@ public class Block {
     private int y;
 
     public Block(int id, int x, int y) {
+        this.id = id;
         this.x = x;
         this.y = y;
     }

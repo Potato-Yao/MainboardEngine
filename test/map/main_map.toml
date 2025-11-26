@@ -5,6 +5,9 @@ block_height = 48
 id = 0
 path = "./test/image/Ice_Block_(placed).png"
 
+[[block-item]]
+id = 1
+path = "./test/image/Glass_(placed).png"
 
 [[block]]
 x = 0
@@ -19,4 +22,4 @@ id = 0
 [[block]]
 x = 2
 y = 0
-id = 0
+id = 1

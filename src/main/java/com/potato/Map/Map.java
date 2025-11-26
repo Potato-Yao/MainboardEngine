@@ -23,6 +23,9 @@ public class Map {
                 throw new RuntimeException("BlockItem id exceeds BLOCK_ARRAY_SIZE");
             }
 
+            if (this.blockItems.get(item.getId()) != null) {
+                throw new RuntimeException("Duplicate BlockItem id: " + item.getId());
+            }
             this.blockItems.set(item.getId(), item);
         }
     }
