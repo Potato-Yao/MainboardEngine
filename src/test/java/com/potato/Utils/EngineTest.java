@@ -10,7 +10,9 @@ import java.time.Instant;
 class EngineTest {
     @Test
     void test() {
-        Engine engine = new Engine();
+        EngineBuilder engineBuilder = new EngineBuilder();
+        engineBuilder.configFile("./test/engine_config.toml");
+        Engine engine = engineBuilder.build();
         engine.registerEventProcessor((context, caller) -> {
             if (context.getCurrentContext() == GameContext.CommonContext.ENGINE_START.name()) {
                 engine.keyboardManager.poll();

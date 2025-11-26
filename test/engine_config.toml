@@ -1,0 +1,7 @@
+version = "b0.0.1"
+
+block_count = 2048
+
+defaut_map = "main_map"
+
+engine = "auto"

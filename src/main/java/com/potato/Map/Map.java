@@ -13,13 +13,13 @@ public class Map {
 
     public Map(ArrayList<BlockItem> blockItems, ArrayList<Block> blocks) {
         this.blocks = blocks;
-        this.blockItems = new ArrayList<>(Config.BLOCK_ARRAY_SIZE);
-        for (int i = 0; i < Config.BLOCK_ARRAY_SIZE; i++) {
+        this.blockItems = new ArrayList<>(Config.blockArraySize);
+        for (int i = 0; i < Config.blockArraySize; i++) {
             this.blockItems.add(null);
         }
 
         for (BlockItem item : blockItems) {
-            if (item.getId() > Config.BLOCK_ARRAY_SIZE) {
+            if (item.getId() > Config.blockArraySize) {
                 throw new RuntimeException("BlockItem id exceeds BLOCK_ARRAY_SIZE");
             }
 
